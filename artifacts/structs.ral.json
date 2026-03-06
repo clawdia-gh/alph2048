@@ -1,0 +1,29 @@
+[
+  {
+    "name": "RunReceipt",
+    "fieldNames": [
+      "player",
+      "seedHash",
+      "startedAt",
+      "submitted",
+      "submittedScore",
+      "attestationHash"
+    ],
+    "fieldTypes": [
+      "Address",
+      "ByteVec",
+      "U256",
+      "Bool",
+      "U256",
+      "ByteVec"
+    ],
+    "isMutable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  }
+]

@@ -1,0 +1,338 @@
+{
+  "version": "v4.3.1",
+  "name": "Tournament2048",
+  "bytecode": "0e0614404941264259427e430000000101010a1600ce012cce022a0d2bce022d0200000103001da0030c337a4c06181600a003ce032a344c11a0021701a00617020ca102ce00a1000ca106caa107071600160116026001010306004070d3d4c00063ce020c337a4c0618ce04ce052a1367102f107bce0013c40de0b6b3a76400002f7a4c0418ce01130b2f7a4c0418ce02130a2f7a4c0418ce031385265c002f7a4c0418ce041353882f7a4c0418ce051353882f117b561703160300011602a0002f0f7b140a5f5f6d61705f5f305f5f160044cbc51913067bb4170416041602a9ca140a5f5f6d61705f5f305f5f160044b1160416011603040c140100d20106a00116022aa101a0040d2aa104a0020d2aa102a0021705a0000000a1001603a10305160016041601160316051602a001a004760102030f0040a7d303dac1b0140a5f5f6d61705f5f305f5f160044cbc50d7b0c0d0d140a5f5f6d61705f5f305f5f160044cb170e160e01010d0d0d160e01010e0d0d160e01010f0d0d160e0101100d0d160e0101110d0d160e0101170817071706170517041703b4170916091603450c7b1606190e7b0317061601170716021708160316041605160616071608110e0c140a5f5f6d61705f5f305f5f160044cb170e160e0102100e0c160e01020f0e0c160e01020e0e0c160e01020d0e0c160e01020c0e0c160e0102a0050d2aa10556170a1601a00633170b0c170c160b4c4022a001ce042c1367102d170c160c0c334c031609160ca8a001160c2ba1011601a1061609a107a0000e2d170d160dce00314c03ce00a1004a02160da100160aa103061600160916011602160aa002160ca0017601000001090fd35347b263a003ce032a1700a000a001a002ce00ce01ce02a006a00716000201000108074040d33800a708140a5f5f6d61705f5f305f5f160044cbc54c40310c0d0d140a5f5f6d61705f5f305f5f160044cb1707160701010d0d0d160701010e0d0d160701010f0d0d16070101100d0d16070101110d0d16070101170617051704170317021701031601160216031604160516060204ca1401000c040c14010002",
+  "codeHash": "ee363b97f86fbbb5702be6d1a81c89377e6236e597fdf95c8fcd6f0a548fd140",
+  "fieldsSig": {
+    "names": [
+      "baseEntryFee",
+      "entryGrowthNumerator",
+      "entryGrowthDenominator",
+      "inactivityResetWindowMs",
+      "payoutBps",
+      "carryBps",
+      "currentEntryFee",
+      "pot",
+      "roundIndex",
+      "lastActivityAt",
+      "totalRuns",
+      "totalSubmissions",
+      "leaderboardTopScore",
+      "leaderboardTopPlayer"
+    ],
+    "types": [
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "U256",
+      "Address"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "eventsSig": [
+    {
+      "name": "RunStarted",
+      "fieldNames": [
+        "runIdHash",
+        "player",
+        "seedHash",
+        "startedAt",
+        "roundIndex",
+        "entryFee",
+        "potAfter",
+        "totalRuns"
+      ],
+      "fieldTypes": [
+        "ByteVec",
+        "Address",
+        "ByteVec",
+        "U256",
+        "U256",
+        "U256",
+        "U256",
+        "U256"
+      ]
+    },
+    {
+      "name": "RunSubmitted",
+      "fieldNames": [
+        "runIdHash",
+        "player",
+        "score",
+        "attestationHash",
+        "submittedAt",
+        "roundIndex",
+        "payout",
+        "carry"
+      ],
+      "fieldTypes": [
+        "ByteVec",
+        "Address",
+        "U256",
+        "ByteVec",
+        "U256",
+        "U256",
+        "U256",
+        "U256"
+      ]
+    },
+    {
+      "name": "InactivityReset",
+      "fieldNames": [
+        "triggeredAt",
+        "roundIndexBefore",
+        "topScoreBefore"
+      ],
+      "fieldTypes": [
+        "U256",
+        "U256",
+        "U256"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "nextEntryFee",
+      "paramNames": [
+        "currentFee"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "maybeResetForInactivity",
+      "paramNames": [
+        "now"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "startRun",
+      "paramNames": [
+        "runIdHash",
+        "seedHash",
+        "payment"
+      ],
+      "paramTypes": [
+        "ByteVec",
+        "ByteVec",
+        "U256"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "submitScore",
+      "paramNames": [
+        "runIdHash",
+        "score",
+        "attestationHash"
+      ],
+      "paramTypes": [
+        "ByteVec",
+        "U256",
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "getEconomyState",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256",
+        "U256",
+        "U256",
+        "U256",
+        "U256",
+        "U256",
+        "U256",
+        "Address",
+        "U256"
+      ]
+    },
+    {
+      "name": "getRunState",
+      "paramNames": [
+        "runIdHash"
+      ],
+      "paramTypes": [
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "Bool",
+        "Address",
+        "ByteVec",
+        "U256",
+        "Bool",
+        "U256",
+        "ByteVec"
+      ]
+    }
+  ],
+  "constants": [
+    {
+      "name": "BPS_DENOMINATOR",
+      "value": {
+        "type": "U256",
+        "value": "10000"
+      }
+    },
+    {
+      "name": "LOCKED_BASE_ENTRY",
+      "value": {
+        "type": "U256",
+        "value": "1000000000000000000"
+      }
+    },
+    {
+      "name": "LOCKED_GROWTH_NUM",
+      "value": {
+        "type": "U256",
+        "value": "11"
+      }
+    },
+    {
+      "name": "LOCKED_GROWTH_DEN",
+      "value": {
+        "type": "U256",
+        "value": "10"
+      }
+    },
+    {
+      "name": "LOCKED_RESET_MS",
+      "value": {
+        "type": "U256",
+        "value": "86400000"
+      }
+    },
+    {
+      "name": "LOCKED_PAYOUT_BPS",
+      "value": {
+        "type": "U256",
+        "value": "5000"
+      }
+    },
+    {
+      "name": "LOCKED_CARRY_BPS",
+      "value": {
+        "type": "U256",
+        "value": "5000"
+      }
+    }
+  ],
+  "enums": [
+    {
+      "name": "ErrorCodes",
+      "fields": [
+        {
+          "name": "RunNotOwnedByCaller",
+          "value": {
+            "type": "U256",
+            "value": "0"
+          }
+        },
+        {
+          "name": "RunIdMismatch",
+          "value": {
+            "type": "U256",
+            "value": "1"
+          }
+        },
+        {
+          "name": "RunAlreadySubmitted",
+          "value": {
+            "type": "U256",
+            "value": "2"
+          }
+        },
+        {
+          "name": "InvalidEntryPayment",
+          "value": {
+            "type": "U256",
+            "value": "3"
+          }
+        },
+        {
+          "name": "InvalidEconomyConfig",
+          "value": {
+            "type": "U256",
+            "value": "4"
+          }
+        },
+        {
+          "name": "InvalidLockedParams",
+          "value": {
+            "type": "U256",
+            "value": "5"
+          }
+        },
+        {
+          "name": "RunAlreadyStarted",
+          "value": {
+            "type": "U256",
+            "value": "6"
+          }
+        }
+      ]
+    }
+  ],
+  "mapsSig": {
+    "names": [
+      "runs"
+    ],
+    "types": [
+      "Map[ByteVec,RunReceipt]"
+    ]
+  }
+}

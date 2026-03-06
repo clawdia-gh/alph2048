@@ -1,0 +1,13 @@
+{
+  "network": "testnet",
+  "nodeUrl": "https://node.testnet.alephium.org",
+  "contractId": "ea3dce0da334bc637447937d96e7e910dedd8491836000bf34f21285520c6c00",
+  "contractAddress": "2ATLB5PooHLJeYNrtGCovtaoSEiQfjag4ctbuJWFdpEqu",
+  "deployTxId": "39c17368a0d1a6d7c10ee9d3d159d9edceafe2c8dc52317275ff60d3c964f253",
+  "runIdHash": "626574612d313737323736323837303136320000000000000000000000000000",
+  "seedHash": "736565642d313737323736323837303136320000000000000000000000000000",
+  "attestationHash": "6174742d31373732373632383730313632000000000000000000000000000000",
+  "startRunTxId": "e770c23471897d9bea0674ec7bf947dbc38c46477ab6b784abfebcbb566348fb",
+  "submitScoreTxId": "62e6f157a7fe170290ad2a6e832239b94bd52644f169fea3543b58f28ca8cedc",
+  "signer": "16sEreQpMCsYWYhKqtTonpcnD2Q7p5gLT9Dm1GYg6Ngxu"
+}

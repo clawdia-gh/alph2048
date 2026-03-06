@@ -1,0 +1,10 @@
+{
+  "network": "testnet",
+  "deployedAt": "2026-03-06T18:31:13.017Z",
+  "contractId": "80b88dfa043253134b5497d8b90107f0bb649e5a68c06b9ea70bb83f7cf0ec00",
+  "address": "23MRX4GsgrHKDffDPecM3w87qXuLhiVQaNfUeLtsXdgGX",
+  "groupIndex": 0,
+  "deployTxId": "b61b7c5fb5e626da1a460ce44ad1ae00d75ad45da346b3e7f390f898f2222622",
+  "deployerAddress": "1DiUGqbv7TB8h8EoE7AqyckCpA3e2A3ds86LbZJp68kuq",
+  "codeHash": "b2a760bc1307ec862ec7a54e28808ec53f01fcc65173511f40377255ae224a59"
+}

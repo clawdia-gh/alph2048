@@ -1,0 +1,175 @@
+struct RunReceipt {
+  mut player: Address,
+  mut seedHash: ByteVec,
+  mut startedAt: U256,
+  mut submitted: Bool,
+  mut submittedScore: U256,
+  mut attestationHash: ByteVec
+}
+
+Contract Tournament2048(
+  // Locked economy params
+  baseEntryFee: U256,
+  entryGrowthNumerator: U256,
+  entryGrowthDenominator: U256,
+  inactivityResetWindowMs: U256,
+  payoutBps: U256,
+  carryBps: U256,
+
+  // Dynamic economy state
+  mut currentEntryFee: U256,
+  mut pot: U256,
+  mut roundIndex: U256,
+  mut lastActivityAt: U256,
+
+  // Aggregate stats
+  mut totalRuns: U256,
+  mut totalSubmissions: U256,
+  mut leaderboardTopScore: U256,
+  mut leaderboardTopPlayer: Address
+) {
+  // Per-run receipt storage (mapping is implemented as sub-contracts by Ralph)
+  mapping[ByteVec, RunReceipt] runs
+
+  event RunStarted(runIdHash: ByteVec, player: Address, seedHash: ByteVec, startedAt: U256, roundIndex: U256, entryFee: U256, potAfter: U256, totalRuns: U256)
+  event RunSubmitted(runIdHash: ByteVec, player: Address, score: U256, attestationHash: ByteVec, submittedAt: U256, roundIndex: U256, payout: U256, carry: U256)
+  event InactivityReset(triggeredAt: U256, roundIndexBefore: U256, topScoreBefore: U256)
+
+  const BPS_DENOMINATOR = 10000
+  const LOCKED_BASE_ENTRY = 1000000000000000000
+  const LOCKED_GROWTH_NUM = 11
+  const LOCKED_GROWTH_DEN = 10
+  const LOCKED_RESET_MS = 86400000
+  const LOCKED_PAYOUT_BPS = 5000
+  const LOCKED_CARRY_BPS = 5000
+
+  enum ErrorCodes {
+    RunNotOwnedByCaller = 0
+    RunIdMismatch = 1
+    RunAlreadySubmitted = 2
+    InvalidEntryPayment = 3
+    InvalidEconomyConfig = 4
+    InvalidLockedParams = 5
+    RunAlreadyStarted = 6
+  }
+
+  fn nextEntryFee(currentFee: U256) -> U256 {
+    // ceil(currentFee * growthNumerator / growthDenominator)
+    return (currentFee * entryGrowthNumerator + entryGrowthDenominator - 1) / entryGrowthDenominator
+  }
+
+  @using(updateFields = true)
+  fn maybeResetForInactivity(now: U256) -> () {
+    if (lastActivityAt > 0 && now >= lastActivityAt + inactivityResetWindowMs) {
+      let roundIndexBefore = roundIndex
+      let topScoreBefore = leaderboardTopScore
+
+      roundIndex = 0
+      currentEntryFee = baseEntryFee
+      leaderboardTopScore = 0
+      leaderboardTopPlayer = nullContractAddress!()
+
+      emit InactivityReset(now, roundIndexBefore, topScoreBefore)
+    }
+  }
+
+  @using(preapprovedAssets = true, assetsInContract = true, updateFields = true, checkExternalCaller = false)
+  pub fn startRun(runIdHash: ByteVec, seedHash: ByteVec, payment: U256) -> () {
+    assert!(entryGrowthDenominator > 0 && payoutBps + carryBps == BPS_DENOMINATOR, ErrorCodes.InvalidEconomyConfig)
+    assert!(
+      baseEntryFee == LOCKED_BASE_ENTRY &&
+      entryGrowthNumerator == LOCKED_GROWTH_NUM &&
+      entryGrowthDenominator == LOCKED_GROWTH_DEN &&
+      inactivityResetWindowMs == LOCKED_RESET_MS &&
+      payoutBps == LOCKED_PAYOUT_BPS &&
+      carryBps == LOCKED_CARRY_BPS,
+      ErrorCodes.InvalidLockedParams
+    )
+
+    let now = blockTimeStamp!()
+    maybeResetForInactivity(now)
+
+    assert!(payment == currentEntryFee, ErrorCodes.InvalidEntryPayment)
+    assert!(!runs.contains!(runIdHash), ErrorCodes.RunAlreadyStarted)
+
+    let player = callerAddress!()
+    transferTokenToSelf!(player, ALPH, payment)
+
+    runs.insert!(runIdHash, RunReceipt {
+      player: player,
+      seedHash: seedHash,
+      startedAt: now,
+      submitted: false,
+      submittedScore: 0,
+      attestationHash: #00
+    })
+
+    pot = pot + payment
+    totalRuns = totalRuns + 1
+    roundIndex = roundIndex + 1
+    let runRoundIndex = roundIndex
+    currentEntryFee = nextEntryFee(currentEntryFee)
+    lastActivityAt = now
+
+    emit RunStarted(runIdHash, player, seedHash, now, runRoundIndex, payment, pot, totalRuns)
+  }
+
+  @using(assetsInContract = true, updateFields = true, checkExternalCaller = false)
+  pub fn submitScore(runIdHash: ByteVec, score: U256, attestationHash: ByteVec) -> () {
+    assert!(runs.contains!(runIdHash), ErrorCodes.RunIdMismatch)
+
+    let mut receipt = runs[runIdHash]
+    let player = callerAddress!()
+    assert!(player == receipt.player, ErrorCodes.RunNotOwnedByCaller)
+    assert!(!receipt.submitted, ErrorCodes.RunAlreadySubmitted)
+
+    // TODO: verify attestationHash against verifier/oracle signature in next phase.
+    receipt.submitted = true
+    receipt.submittedScore = score
+    receipt.attestationHash = attestationHash
+    runs[runIdHash] = receipt
+
+    totalSubmissions = totalSubmissions + 1
+
+    let now = blockTimeStamp!()
+    let isNewTop = score > leaderboardTopScore
+    let mut payout = 0
+
+    if (isNewTop) {
+      payout = pot * payoutBps / BPS_DENOMINATOR
+      if (payout > 0) {
+        transferTokenFromSelf!(player, ALPH, payout)
+      }
+
+      pot = pot - payout
+      leaderboardTopScore = score
+      leaderboardTopPlayer = player
+
+      // When first place is taken, cut current entry fee by half (but never below baseEntryFee).
+      let halvedFee = currentEntryFee / 2
+      if (halvedFee < baseEntryFee) {
+        currentEntryFee = baseEntryFee
+      } else {
+        currentEntryFee = halvedFee
+      }
+    }
+
+    lastActivityAt = now
+
+    emit RunSubmitted(runIdHash, player, score, attestationHash, now, roundIndex, payout, pot)
+  }
+
+  pub fn getEconomyState() -> (U256, U256, U256, U256, U256, U256, U256, Address, U256) {
+    let resetAt = lastActivityAt + inactivityResetWindowMs
+    return currentEntryFee, pot, roundIndex, baseEntryFee, entryGrowthNumerator, entryGrowthDenominator, leaderboardTopScore, leaderboardTopPlayer, resetAt
+  }
+
+  pub fn getRunState(runIdHash: ByteVec) -> (Bool, Address, ByteVec, U256, Bool, U256, ByteVec) {
+    if (runs.contains!(runIdHash)) {
+      let receipt = runs[runIdHash]
+      return true, receipt.player, receipt.seedHash, receipt.startedAt, receipt.submitted, receipt.submittedScore, receipt.attestationHash
+    }
+
+    return false, nullContractAddress!(), #00, 0, false, 0, #00
+  }
+}

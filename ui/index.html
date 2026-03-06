@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALPH 2048 Arena</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <div class="hero-media">
+          <img class="hero-title-image" src="./assets/alph-2048-title-beta.svg" alt="ALPH 2048 Arena — Testnet" />
+          <button id="walletControl" class="wallet-control">Connect Wallet</button>
+          <div id="walletMenu" class="wallet-menu" style="display:none"></div>
+        </div>
+        <p>Solo 2048 runs on Alephium with ranked-run verification (beta 50/50 payout-carry).</p>
+      </header>
+
+      <div id="walletChooser" class="wallet-chooser" style="display:none" aria-label="Wallet chooser">
+        <div class="wallet-chooser-card">
+          <h3>Connect Wallet</h3>
+          <button id="walletChooseExtension">Extension wallet</button>
+          <button id="walletChooseDesktop">Desktop wallet</button>
+          <button id="walletChooseQr">WalletConnect QR</button>
+          <button id="walletChooseCancel" class="secondary">Cancel</button>
+        </div>
+      </div>
+
+      <details class="panel rules" aria-label="Game rules">
+        <summary>How to play</summary>
+        <ul>
+          <li>Connect wallet, then click <strong>Start Ranked Run</strong>.</li>
+          <li>You have <strong>5 minutes</strong> to finish and submit that run.</li>
+          <li>Use the <strong>same wallet</strong> for start and submit.</li>
+          <li><strong>24h Reset</strong> is inactivity-based: if no one starts for 24h, entry fee/top-score cycle resets on next start.</li>
+        </ul>
+      </details>
+
+      <section class="panel metrics" aria-label="Tournament stats">
+        <div class="metric"><span>Entry fee</span><strong id="entryFee">1.0000 ALPH</strong></div>
+        <div class="metric"><span>Current pot</span><strong id="pot">0.0000 ALPH</strong></div>
+        <div class="metric"><span>Current high score</span><strong id="topScore">0</strong></div>
+        <div class="metric"><span>Reset</span><strong id="resetCountdown">24:00:00</strong></div>
+      </section>
+
+      <section class="panel score-row">
+        <div class="live-metric">
+          <strong>Score</strong>
+          <span id="score">0</span>
+        </div>
+        <div class="live-metric">
+          <strong>Current game timer</strong>
+          <span id="gameTimer">0:00</span>
+        </div>
+      </section>
+
+      <section class="panel" id="countdownBanner" style="display:none"></section>
+
+      <div class="board-shell">
+        <div id="board" class="board" aria-label="2048 board"></div>
+        <button id="startRunOverlay" class="start-overlay" style="display:none">Start Ranked Run</button>
+      </div>
+      <p id="overlayReason" class="overlay-reason"></p>
+
+      <section class="panel controls" aria-label="Game controls">
+        <div class="dpad">
+          <button class="move up" data-dir="up">↑</button>
+          <button class="move left" data-dir="left">←</button>
+          <button class="move down" data-dir="down">↓</button>
+          <button class="move right" data-dir="right">→</button>
+        </div>
+        <p class="hint controls-hint">Use arrow keys, swipe on the board, or tap controls to play.</p>
+        <button id="endRunNow" class="move end-run" disabled>Quit and Submit</button>
+      </section>
+
+      <section class="panel" id="highScoreBanner" style="display:none"></section>
+      <section class="panel" id="submitResultCard" style="display:none"></section>
+
+      <section class="panel leaderboard-wrap">
+        <div class="leaderboard-block">
+          <h3>Leaderboard</h3>
+          <ol id="leaderboard"></ol>
+        </div>
+        <div class="leaderboard-block">
+          <h3>Recent submissions</h3>
+          <ul id="recentSubmissions"></ul>
+        </div>
+      </section>
+
+      <details class="panel technical">
+        <summary>Technical details</summary>
+        <pre id="verifyResult"></pre>
+      </details>
+
+      <details class="panel status-fold" aria-label="Status">
+        <summary>Session status</summary>
+        <div class="chips">
+          <span id="walletStatus" class="chip chip-neutral">Wallet: disconnected</span>
+          <span id="contractStatus" class="chip chip-neutral">Contract: syncing</span>
+          <span id="runChip" class="chip chip-neutral">Run: idle</span>
+          <span id="guardChip" class="chip chip-neutral">Guard: idle</span>
+          <span id="rankChip" class="chip chip-neutral">Rank: n/a</span>
+        </div>
+        <div id="runStatus">Run: not started</div>
+      </details>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

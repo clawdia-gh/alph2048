@@ -1,0 +1,37 @@
+{
+  "name": "alephium-2048-tournament-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:ui\"",
+    "dev:server": "node server/index.js",
+    "dev:ui": "npx serve ui -l 4173",
+    "start": "node server/index.js",
+    "test": "node --test",
+    "compile": "npx @alephium/cli compile -c alephium.config.cjs -n testnet",
+    "compile:devnet": "npx @alephium/cli compile -c alephium.config.cjs -n devnet",
+    "deploy:testnet": "npx @alephium/cli deploy -c alephium.config.cjs -n testnet",
+    "deploy:devnet": "npx @alephium/cli deploy -c alephium.config.cjs -n devnet",
+    "contracts:artifact": "node scripts/export-beta-contract-artifact.mjs",
+    "build:chain-client": "esbuild ui/chain-client.ts --bundle --format=esm --platform=browser --target=es2020 --outfile=ui/chain-client.js",
+    "deploy:beta": "bash scripts/deploy-beta.sh",
+    "smoke:beta": "node scripts/smoke-beta-transactions.mjs",
+    "check:beta-health": "node scripts/check-beta-health.mjs"
+  },
+  "dependencies": {
+    "@alephium/cli": "^2.0.8",
+    "@alephium/get-extension-wallet": "^2.0.8",
+    "@alephium/walletconnect-provider": "^2.0.8",
+    "@alephium/walletconnect-qrcode-modal": "^0.1.0",
+    "@alephium/web3": "^2.0.8",
+    "@alephium/web3-wallet": "^2.0.8",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "esbuild": "^0.27.3",
+    "serve": "^14.2.3"
+  }
+}

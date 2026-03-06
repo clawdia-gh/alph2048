@@ -1,0 +1,35 @@
+<svg width="1200" height="280" viewBox="0 0 1200 280" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">ALPH 2048 Arena (Beta)</title>
+  <desc id="desc">Stylized title image for the ALPH 2048 Arena beta test.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1F2A44"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#7C5CFF"/>
+      <stop offset="1" stop-color="#00CAFF"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-20%" width="120%" height="140%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <rect x="2" y="2" width="1196" height="276" rx="26" fill="url(#bg)" stroke="#334155" stroke-width="4"/>
+
+  <circle cx="120" cy="86" r="54" fill="#7C5CFF" opacity="0.22" filter="url(#soft)"/>
+  <circle cx="1038" cy="198" r="64" fill="#00CAFF" opacity="0.18" filter="url(#soft)"/>
+
+  <text x="62" y="122" fill="#F8FAFC" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="66" font-weight="800" letter-spacing="1.2">ALPH 2048 ARENA</text>
+  <text x="64" y="172" fill="#B7C6E8" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="28" font-weight="600">Ranked runs on Alephium • TESTNET BETA</text>
+
+
+  <g transform="translate(64,206)">
+    <rect x="0" y="0" width="74" height="54" rx="12" fill="#EEE4DA"/>
+    <text x="37" y="37" text-anchor="middle" fill="#6B5E56" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="28" font-weight="800">2</text>
+    <rect x="88" y="0" width="74" height="54" rx="12" fill="#EDCC61"/>
+    <text x="125" y="37" text-anchor="middle" fill="#FFF8E5" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="26" font-weight="800">256</text>
+    <rect x="176" y="0" width="74" height="54" rx="12" fill="#EDC22E"/>
+    <text x="213" y="37" text-anchor="middle" fill="#FFF8E5" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="24" font-weight="800">2048</text>
+  </g>
+</svg>

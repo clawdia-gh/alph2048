@@ -1,0 +1,28 @@
+{
+  "fullNodeVersion": "v4.3.1",
+  "compilerOptionsUsed": {
+    "ignoreUnusedConstantsWarnings": false,
+    "ignoreUnusedVariablesWarnings": false,
+    "ignoreUnusedFieldsWarnings": false,
+    "ignoreUnusedPrivateFunctionsWarnings": false,
+    "ignoreUpdateFieldsCheckWarnings": false,
+    "ignoreCheckExternalCallerWarnings": false,
+    "ignoreUnusedFunctionReturnWarnings": false,
+    "skipAbstractContractCheck": false,
+    "skipTests": true
+  },
+  "infos": {
+    "RunReceipt": {
+      "sourceFile": "Tournament2048.ral",
+      "sourceCodeHash": "8c3ede95d3f10aa452c3fff3a6b8f54f5457e5279bfdbb817567bf307a8d2cdc",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
+    "Tournament2048": {
+      "sourceFile": "Tournament2048.ral",
+      "sourceCodeHash": "8c3ede95d3f10aa452c3fff3a6b8f54f5457e5279bfdbb817567bf307a8d2cdc",
+      "bytecodeDebugPatch": "=12-2+3f=2-2+72=2+9=1-1=2-2+19=159-1+2=296+7a7e0214696e73657274206174206d617020706174683a2000=1080",
+      "codeHashDebug": "fbf61223af76ea0effcbea836b5218e6847e0edaf939db1c2edbc38df6c3488e"
+    }
+  }
+}
