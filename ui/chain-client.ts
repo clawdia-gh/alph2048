@@ -100,6 +100,7 @@ async function connectViaWalletConnect(mode: 'qr' | 'desktop') {
   const wc = await WalletConnectProvider.init({
     projectId: WALLET_CONNECT_PROJECT_ID,
     networkId: 'testnet',
+    addressGroup: 0,
     // Explicitly avoid deprecated forwarding methods; use SDK node/explorer providers instead.
     methods: [
       'alph_signAndSubmitTransferTx',
@@ -194,7 +195,7 @@ export async function connectExtensionWallet() {
 
   try {
     if (typeof wallet.enableIfConnected === 'function') {
-      account = normalizeAccount(await wallet.enableIfConnected({ networkId: 'testnet' } as any))
+      account = normalizeAccount(await wallet.enableIfConnected({ networkId: 'testnet', addressGroup: 0 } as any))
     }
   } catch {
     // fallback below
@@ -202,7 +203,7 @@ export async function connectExtensionWallet() {
 
   if (!account?.address) {
     try {
-      account = normalizeAccount(await wallet.enable({ networkId: 'testnet' } as any))
+      account = normalizeAccount(await wallet.enable({ networkId: 'testnet', addressGroup: 0 } as any))
     } catch {
       account = normalizeAccount(await wallet.enable())
     }
