@@ -823,6 +823,21 @@ async function connectWallet(mode = 'auto') {
       state.walletGroup = null;
     }
 
+    // ALPH2048 supports only group0 or groupless/unknown-group wallets.
+    if (Number.isInteger(state.walletGroup) && state.walletGroup !== 0) {
+      try {
+        if (typeof chainClient.disconnectExtensionWallet === 'function') {
+          await chainClient.disconnectExtensionWallet();
+        }
+      } catch {}
+      state.wallet = null;
+      state.walletGroup = null;
+      walletStatusEl.textContent = 'Wallet: disconnected';
+      verifyResultEl.textContent = `Unsupported wallet group (g${state.walletGroup}). Please connect a group0 or groupless wallet.`;
+      render();
+      return;
+    }
+
     walletStatusEl.textContent = `Wallet: ${state.wallet} (connected)`;
   } else {
     state.wallet = null;
