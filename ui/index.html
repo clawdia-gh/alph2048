@@ -86,11 +86,17 @@
       <section class="panel leaderboard-wrap">
         <div class="leaderboard-block">
           <h3>Leaderboard</h3>
-          <ol id="leaderboard"></ol>
+          <div class="table-head lb-grid">
+            <span>Rank</span><span>Score</span><span>Address</span><span>Won amount</span>
+          </div>
+          <ol id="leaderboard" class="table-list"></ol>
         </div>
         <div class="leaderboard-block">
           <h3>Recent submissions</h3>
-          <ul id="recentSubmissions"></ul>
+          <div class="table-head recent-grid">
+            <span>Score</span><span>Address</span><span>Entry</span><span>Time age</span>
+          </div>
+          <ul id="recentSubmissions" class="table-list"></ul>
         </div>
       </section>
 

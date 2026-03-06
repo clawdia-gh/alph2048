@@ -359,9 +359,46 @@ pre { white-space: pre-wrap; font-size: 12px; background: #131825; color:#cbd6f0
   padding: 10px;
 }
 .leaderboard-block h3 { margin: 0 0 8px; font-size: 14px; color: #c7d3ef; }
-.leaderboard-block ol, .leaderboard-block ul { margin: 0; padding-left: 18px; font-size: 13px; color: #aebbe0; }
-.leaderboard-block li { margin: 4px 0; overflow-wrap: anywhere; }
+.leaderboard-block ol, .leaderboard-block ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  font-size: 13px;
+  color: #aebbe0;
+}
+.table-head,
+.table-row {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+}
+.lb-grid { grid-template-columns: 56px 72px minmax(0, 1fr) 130px; }
+.recent-grid { grid-template-columns: 72px minmax(0, 1fr) 110px 90px; }
+.table-head {
+  color: #8fa3d2;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  padding: 0 0 6px;
+  border-bottom: 1px solid #2b3654;
+  margin-bottom: 4px;
+}
+.table-list .table-row {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(46, 60, 92, 0.45);
+}
+.table-list .table-row:last-child { border-bottom: 0; }
 .leaderboard-block li.me { color: #ffe09a; font-weight: 700; }
+.table-row span:last-child {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 600px) {
+  .lb-grid { grid-template-columns: 44px 60px minmax(0, 1fr) 98px; gap: 6px; }
+  .recent-grid { grid-template-columns: 58px minmax(0, 1fr) 80px 70px; gap: 6px; }
+  .table-head { font-size: 10px; }
+}
 
 #submitResultCard {
   width: 100%;

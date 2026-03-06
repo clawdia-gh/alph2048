@@ -219,8 +219,24 @@ const leaderboardHandler = (req, res) => {
   const limit = Math.max(1, Math.min(100, Number(req.query.limit || 10)));
   const board = loadLeaderboard();
   const scoped = entriesForCurrentContract(board);
+
+  const wonByWallet = new Map();
+  for (const e of scoped) {
+    const w = String(e?.wallet || '').toLowerCase();
+    if (!w) continue;
+    let won = 0n;
+    try { won = BigInt(e?.amountWonAtto || 0); } catch { won = 0n; }
+    wonByWallet.set(w, (wonByWallet.get(w) || 0n) + won);
+  }
+
+  // Leaderboard is rank-based by score across all submissions (no winner-only filter).
   const sorted = [...scoped].sort((a, b) => b.score - a.score || a.timestamp - b.timestamp);
-  const top = sorted.slice(0, limit).map((entry, idx) => ({ ...entry, rank: idx + 1 }));
+
+  const top = sorted.slice(0, limit).map((entry, idx) => ({
+    ...entry,
+    rank: idx + 1,
+    walletTotalWonAtto: String(wonByWallet.get(String(entry.wallet || '').toLowerCase()) || 0n)
+  }));
   res.json({ ok: true, total: sorted.length, entries: top });
 };
 
@@ -280,7 +296,7 @@ const economyHandler = (_, res) => {
 };
 
 const leaderboardRecordHandler = async (req, res) => {
-  const { wallet, score, txId, runIdHash, entryFeePaidAtto, amountWonAtto, verifyTicket, attestationHash } = req.body || {};
+  const { wallet, score, txId, runIdHash, entryFeePaidAtto, amountWonAtto, payoutEstimateAtto, verifyTicket, attestationHash } = req.body || {};
   if (!wallet || typeof score !== 'number' || !txId) {
     metricInc(metrics.recordRejected, 'RECORD_FIELDS_REQUIRED');
     return res.status(400).json({ ok: false, errorCode: 'RECORD_FIELDS_REQUIRED', error: 'wallet, score, txId are required' });
@@ -315,6 +331,10 @@ const leaderboardRecordHandler = async (req, res) => {
     }
 
     const beforeTop = scoped.length ? Math.max(...scoped.map((e) => e.score || 0)) : 0;
+    const newHighScore = score > beforeTop;
+    const normalizedPayoutEstimate = payoutEstimateAtto != null ? String(payoutEstimateAtto) : null;
+    const normalizedAmountWon = amountWonAtto != null ? String(amountWonAtto) : '0';
+
     const entry = {
       wallet,
       walletShort: shortWallet(wallet),
@@ -322,7 +342,9 @@ const leaderboardRecordHandler = async (req, res) => {
       txId,
       runIdHash: runIdHash || null,
       entryFeePaidAtto: entryFeePaidAtto != null ? String(entryFeePaidAtto) : null,
-      amountWonAtto: amountWonAtto != null ? String(amountWonAtto) : '0',
+      amountWonAtto: newHighScore
+        ? (normalizedPayoutEstimate ?? normalizedAmountWon)
+        : '0',
       timestamp: Date.now(),
       channel: CHANNEL,
       contractId: CONTRACT_ID
@@ -337,7 +359,6 @@ const leaderboardRecordHandler = async (req, res) => {
     metrics.submitRecords += 1;
     const sorted = entriesForCurrentContract(board).sort((a, b) => b.score - a.score || a.timestamp - b.timestamp);
     const rank = sorted.findIndex((e) => e.txId === txId) + 1;
-    const newHighScore = score > beforeTop;
 
     return res.json({ ok: true, entry, rank, newHighScore, topScore: sorted[0]?.score || score });
   });

@@ -405,38 +405,53 @@ async function refreshLeaderboard() {
         li.textContent = 'No scores yet.';
         leaderboardEl.appendChild(li);
       } else {
+        // Display one row per wallet (best score) for cleaner leaderboard readability.
+        const seenWallets = new Set();
+        const displayEntries = [];
         for (const e of entries) {
+          const key = String(e.wallet || '').toLowerCase();
+          if (!key || seenWallets.has(key)) continue;
+          seenWallets.add(key);
+          displayEntries.push(e);
+          if (displayEntries.length >= 10) break;
+        }
+
+        for (const e of displayEntries) {
           const li = document.createElement('li');
+          li.classList.add('table-row', 'lb-grid');
           const mine = state.wallet && String(e.wallet || '').toLowerCase() === String(state.wallet).toLowerCase();
           if (mine) li.classList.add('me');
-          const txLink = document.createElement('a');
-          txLink.href = explorerTxUrl(e.txId);
-          txLink.target = '_blank';
-          txLink.rel = 'noopener noreferrer';
 
-          const payoutAtto = (() => {
-            try { return BigInt(e.amountWonAtto || 0); } catch { return 0n; }
+          const rankCell = document.createElement('span');
+          rankCell.textContent = `#${e.rank}`;
+
+          const scoreCell = document.createElement('span');
+          scoreCell.textContent = String(e.score);
+
+          const addrCell = document.createElement('span');
+          addrCell.textContent = `${shortWallet(e.walletShort || e.wallet)}${mine ? ' (you)' : ''}`;
+
+          const wonCell = document.createElement('span');
+          const walletTotalWonAtto = (() => {
+            try { return BigInt(e.walletTotalWonAtto || 0); } catch { return 0n; }
           })();
+          wonCell.textContent = walletTotalWonAtto > 0n
+            ? `${formatAlphFromAtto(walletTotalWonAtto) || '0.0000'} ALPH`
+            : '-';
 
-          if (payoutAtto > 0n) {
-            const won = formatAlphFromAtto(payoutAtto) || '0.0000';
-            txLink.textContent = `${won} ALPH`;
-            li.textContent = `${e.score} · ${shortWallet(e.walletShort || e.wallet)}${mine ? ' (you)' : ''} · won `;
-            li.appendChild(txLink);
-          } else {
-            txLink.textContent = 'tx';
-            li.textContent = `${e.score} · ${shortWallet(e.walletShort || e.wallet)}${mine ? ' (you)' : ''} · `;
-            li.appendChild(txLink);
-          }
-
+          li.appendChild(rankCell);
+          li.appendChild(scoreCell);
+          li.appendChild(addrCell);
+          li.appendChild(wonCell);
           leaderboardEl.appendChild(li);
         }
       }
     }
 
+    const recent = Array.isArray(recentData?.entries) ? recentData.entries : [];
+
     if (recentSubmissionsEl) {
       recentSubmissionsEl.innerHTML = '';
-      const recent = Array.isArray(recentData?.entries) ? recentData.entries : [];
       if (!recent.length) {
         const li = document.createElement('li');
         li.textContent = 'No submissions yet.';
@@ -444,8 +459,25 @@ async function refreshLeaderboard() {
       } else {
         for (const e of recent.slice(0, 10)) {
           const li = document.createElement('li');
+          li.classList.add('table-row', 'recent-grid');
+
+          const scoreCell = document.createElement('span');
+          scoreCell.textContent = String(e.score);
+
+          const addrCell = document.createElement('span');
+          addrCell.textContent = shortWallet(e.walletShort || e.wallet);
+
+          const entryCell = document.createElement('span');
           const paid = formatAlphFromAtto(e.entryFeePaidAtto) || '?';
-          li.textContent = `${e.score} · ${shortWallet(e.walletShort || e.wallet)} · entry ${paid} ALPH · ${relativeTime(e.timestamp)}`;
+          entryCell.textContent = `${paid} ALPH`;
+
+          const timeCell = document.createElement('span');
+          timeCell.textContent = relativeTime(e.timestamp);
+
+          li.appendChild(scoreCell);
+          li.appendChild(addrCell);
+          li.appendChild(entryCell);
+          li.appendChild(timeCell);
           recentSubmissionsEl.appendChild(li);
         }
       }
@@ -1098,6 +1130,9 @@ async function submitCurrentScore() {
             amountWonAtto: (submitPayload.score > preSubmitTopScore && preSubmitPotAtto)
               ? String((typeof preSubmitPotAtto === 'bigint' ? preSubmitPotAtto : BigInt(preSubmitPotAtto)) / 2n)
               : '0',
+            payoutEstimateAtto: preSubmitPotAtto
+              ? String((typeof preSubmitPotAtto === 'bigint' ? preSubmitPotAtto : BigInt(preSubmitPotAtto)) / 2n)
+              : null,
             attestationHash: submitPayload.attestationHash,
             verifyTicket: verifyRes.verifyTicket || submitPayload.verifyTicket || null
           })
