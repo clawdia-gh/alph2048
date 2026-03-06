@@ -47196,13 +47196,24 @@ async function submitScoreTx({ contractId, runIdHash, score, attestationHash }) 
   ensureWalletNodeProvider(connected.wallet);
   const contract = Tournament2048.at((0, import_web34.addressFromContractId)(contractId));
   const runId = toByteVec(runIdHash);
+  let latestRunState = null;
   for (let i3 = 0; i3 < 6; i3++) {
     try {
       const rs = await contract.view.getRunState({ args: { runIdHash: runId } });
+      latestRunState = rs;
       if (rs?.returns?.[0] === true) break;
     } catch {
     }
     await sleep(1200);
+  }
+  const exists = latestRunState?.returns?.[0] === true;
+  if (!exists) {
+    throw new Error("RUN_NOT_FOUND_ON_CHAIN: start run was not found on this contract (restart run)");
+  }
+  const owner = String(latestRunState?.returns?.[1] || "").toLowerCase();
+  const signer = String(connected.account.address || "").toLowerCase();
+  if (owner && signer && owner !== signer) {
+    throw new Error("RUN_OWNER_MISMATCH: run was started by a different wallet address");
   }
   const tx = await contract.transact.submitScore({
     signer: connected.wallet,
