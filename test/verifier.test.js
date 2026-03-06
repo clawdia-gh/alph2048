@@ -69,7 +69,7 @@ test('concurrent submit ownership and one-submit are enforced per run', () => {
   }, /RunAlreadySubmitted/);
 });
 
-test('reset logic triggers at 24h inactivity boundary', () => {
+test('reset logic triggers 24h after last new #1 event', () => {
   const state = createTournamentState();
   const t0 = 1_000;
   startRun(state, { runIdHash: '0xa', seedHash: '0xs', player: 'walletA', payment: 1, now: t0 });
@@ -90,6 +90,21 @@ test('payout split is 50/50 on new top score', () => {
 
   assert.equal(r.payout, 0.5);
   assert.equal(r.carry, 0.5);
+});
+
+test('non-winning submissions do not refresh reset clock', () => {
+  const state = createTournamentState();
+  const t0 = 1_000;
+
+  startRun(state, { runIdHash: '0xw1', seedHash: '0xs1', player: 'walletA', payment: 1, now: t0 });
+  submitScore(state, { runIdHash: '0xw1', score: 500, attestationHash: '0xatt1', player: 'walletA', now: t0 + 1000 });
+
+  const lastWinAt = state.lastActivityAt;
+
+  startRun(state, { runIdHash: '0xw2', seedHash: '0xs2', player: 'walletB', payment: state.currentEntryFee, now: t0 + 2000 });
+  submitScore(state, { runIdHash: '0xw2', score: 100, attestationHash: '0xatt2', player: 'walletB', now: t0 + 3000 });
+
+  assert.equal(state.lastActivityAt, lastWinAt);
 });
 
 test('wrong-wallet submit is rejected', () => {

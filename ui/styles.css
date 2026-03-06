@@ -290,13 +290,13 @@ main {
 }
 .dpad {
   display: grid;
-  grid-template-columns: repeat(3, 68px);
-  grid-template-rows: repeat(2, 68px);
+  grid-template-columns: repeat(3, 80px);
+  grid-template-rows: repeat(2, 80px);
   gap: 12px 14px;
   align-items: center;
   justify-items: center;
 }
-.move { width: 68px; font-size: 26px; }
+.move { width: 80px; font-size: 30px; }
 .dpad .up { grid-column: 2; grid-row: 1; }
 .dpad .left { grid-column: 1; grid-row: 2; }
 .dpad .down { grid-column: 2; grid-row: 2; }

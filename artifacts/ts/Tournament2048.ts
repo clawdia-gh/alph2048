@@ -326,8 +326,8 @@ class Factory extends ContractFactory<
 export const Tournament2048 = new Factory(
   Contract.fromJson(
     Tournament2048ContractJson,
-    "=12-2+3f=2-2+72=2+9=1-1=2-2+19=159-1+2=296+7a7e0214696e73657274206174206d617020706174683a2000=1080",
-    "fbf61223af76ea0effcbea836b5218e6847e0edaf939db1c2edbc38df6c3488e",
+    "=12+3b4=1+7=3-1=1-2=1-1=2-2+19=158-2+70=296+7a7e0214696e73657274206174206d617020706174683a2000=1080",
+    "69c24a5be61aae6a3a2d4f7fa876590f95e2b979a8ff0eafb33333c35873bacb",
     types.AllStructs
   )
 );

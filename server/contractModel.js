@@ -44,7 +44,6 @@ export function startRun(state, { runIdHash, seedHash, player, now = Date.now(),
   state.roundIndex += 1;
   state.pot += state.currentEntryFee;
   state.currentEntryFee = Number((state.currentEntryFee * state.entryGrowth).toFixed(8));
-  state.lastActivityAt = now;
 
   state.runs.set(runIdHash, {
     runIdHash,
@@ -83,7 +82,6 @@ export function submitScore(state, { runIdHash, score, attestationHash, player, 
   receipt.submittedScore = score;
   receipt.attestationHash = attestationHash;
   state.totalSubmissions += 1;
-  state.lastActivityAt = now;
 
   let payout = 0;
   if (score > state.leaderboardTopScore) {
@@ -92,6 +90,7 @@ export function submitScore(state, { runIdHash, score, attestationHash, player, 
     state.leaderboardTopScore = score;
     state.leaderboardTopPlayer = player;
     state.currentEntryFee = Math.max(state.baseEntryFee, Number((state.currentEntryFee / 2).toFixed(8)));
+    state.lastActivityAt = now;
   }
 
   return { state, payout, carry: state.pot };

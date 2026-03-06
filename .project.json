@@ -14,15 +14,15 @@
   "infos": {
     "RunReceipt": {
       "sourceFile": "Tournament2048.ral",
-      "sourceCodeHash": "8c3ede95d3f10aa452c3fff3a6b8f54f5457e5279bfdbb817567bf307a8d2cdc",
+      "sourceCodeHash": "c208e61cb36507ce4cd3617584582b690d61e79cfbbcaff4abcfbc080af92a49",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
     "Tournament2048": {
       "sourceFile": "Tournament2048.ral",
-      "sourceCodeHash": "8c3ede95d3f10aa452c3fff3a6b8f54f5457e5279bfdbb817567bf307a8d2cdc",
-      "bytecodeDebugPatch": "=12-2+3f=2-2+72=2+9=1-1=2-2+19=159-1+2=296+7a7e0214696e73657274206174206d617020706174683a2000=1080",
-      "codeHashDebug": "fbf61223af76ea0effcbea836b5218e6847e0edaf939db1c2edbc38df6c3488e"
+      "sourceCodeHash": "c208e61cb36507ce4cd3617584582b690d61e79cfbbcaff4abcfbc080af92a49",
+      "bytecodeDebugPatch": "=12+3b4=1+7=3-1=1-2=1-1=2-2+19=158-2+70=296+7a7e0214696e73657274206174206d617020706174683a2000=1080",
+      "codeHashDebug": "69c24a5be61aae6a3a2d4f7fa876590f95e2b979a8ff0eafb33333c35873bacb"
     }
   }
 }

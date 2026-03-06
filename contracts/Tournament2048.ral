@@ -109,8 +109,7 @@ Contract Tournament2048(
     roundIndex = roundIndex + 1
     let runRoundIndex = roundIndex
     currentEntryFee = nextEntryFee(currentEntryFee)
-    lastActivityAt = now
-
+    // Reset clock is now tied to last time first place was taken (not every start).
     emit RunStarted(runIdHash, player, seedHash, now, runRoundIndex, payment, pot, totalRuns)
   }
 
@@ -154,7 +153,10 @@ Contract Tournament2048(
       }
     }
 
-    lastActivityAt = now
+    if (isNewTop) {
+      // 24h reset countdown is anchored to the last new #1 event.
+      lastActivityAt = now
+    }
 
     emit RunSubmitted(runIdHash, player, score, attestationHash, now, roundIndex, payout, pot)
   }
