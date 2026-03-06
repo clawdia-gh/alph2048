@@ -143,6 +143,7 @@ const state = {
   pendingEntryFeeRetry: false,
   startPending: false,
   submitPending: false,
+  submitTimerFreezeMs: null,
   postSubmitLockUntilMs: 0,
   endRunRequested: false,
   justSubmitted: false,
@@ -585,6 +586,7 @@ function resetGame(newSeed = String(Date.now())) {
   state.pendingEntryFeeRetry = false;
   state.startPending = false;
   state.submitPending = false;
+  state.submitTimerFreezeMs = null;
   state.postSubmitLockUntilMs = 0;
   state.endRunRequested = false;
   state.entryFeePaidAtto = null;
@@ -761,7 +763,10 @@ function render() {
     if (!timerActive) {
       gameTimerEl.textContent = formatGameTimer(state.antiAssist.runTtlMs);
     } else {
-      const ttl = Math.max(0, ttlRemainingMs());
+      const liveTtl = Math.max(0, ttlRemainingMs());
+      const ttl = state.submitPending && state.submitTimerFreezeMs != null
+        ? Math.max(0, state.submitTimerFreezeMs)
+        : liveTtl;
       gameTimerEl.textContent = formatGameTimer(ttl);
     }
   }
@@ -964,6 +969,7 @@ if (walletChooserEl) {
 }
 
 async function submitCurrentScore() {
+  state.submitTimerFreezeMs = Math.max(0, ttlRemainingMs());
   state.submitPending = true;
   render();
   try {
@@ -1004,6 +1010,7 @@ async function submitCurrentScore() {
     } catch {}
     const preSubmitPotAtto = state.chainState?.potAtto;
     const preSubmitTopScore = Number(state.chainState?.topScore || 0);
+    const preSubmitEntryFeeAtto = state.chainState?.currentEntryFeeAtto || null;
 
     const submitPayload = {
       ...(verifyRes.submitPayload || {
@@ -1097,6 +1104,18 @@ async function submitCurrentScore() {
       }
       await refreshLeaderboard();
       await loadChainMeta();
+
+      // Ensure entry-fee UI catches post-win fee changes after chain propagation.
+      if (recData?.ok && recData?.newHighScore) {
+        for (let i = 0; i < 5; i++) {
+          const before = state.chainState?.currentEntryFeeAtto || null;
+          await sleep(900);
+          await loadChainMeta();
+          const after = state.chainState?.currentEntryFeeAtto || null;
+          if (preSubmitEntryFeeAtto != null && after != null && String(after) !== String(preSubmitEntryFeeAtto)) break;
+          if (before != null && after != null && String(after) !== String(before)) break;
+        }
+      }
       if (submitResultCardEl) {
         submitResultCardEl.style.display = 'block';
         const serverSaysTop = Boolean(recData?.ok && (recData?.newHighScore || Number(recData?.rank) === 1));
@@ -1128,6 +1147,7 @@ async function submitCurrentScore() {
     trace('submit:catch', { reason });
   } finally {
     state.submitPending = false;
+    state.submitTimerFreezeMs = null;
     render();
   }
 }

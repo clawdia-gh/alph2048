@@ -21,7 +21,7 @@
       <div id="walletChooser" class="wallet-chooser" style="display:none" aria-label="Wallet chooser">
         <div class="wallet-chooser-card">
           <h3>Connect Wallet</h3>
-          <button id="walletChooseExtension">Extension wallet</button>
+          <button id="walletChooseExtension">Browser Wallet</button>
           <button id="walletChooseDesktop">Desktop wallet</button>
           <button id="walletChooseQr">WalletConnect QR</button>
           <button id="walletChooseCancel" class="secondary">Cancel</button>
@@ -31,10 +31,15 @@
       <details class="panel rules" aria-label="Game rules">
         <summary>How to play</summary>
         <ul>
-          <li>Connect wallet, then click <strong>Start Ranked Run</strong>.</li>
-          <li>You have <strong>5 minutes</strong> to finish and submit that run.</li>
-          <li>Use the <strong>same wallet</strong> for start and submit.</li>
-          <li><strong>24h Reset</strong> is inactivity-based: if no one starts for 24h, entry fee/top-score cycle resets on next start.</li>
+          <li><strong>Connect wallet</strong> (Extension, Desktop, or WalletConnect QR), then click <strong>Start Ranked Run</strong>.</li>
+          <li>Starting a run submits the current <strong>entry fee</strong> on-chain and locks this run to your wallet.</li>
+          <li>You get <strong>5:00</strong> per run. The timer starts only after start-run signing/tx succeeds.</li>
+          <li>Play normally (keyboard arrows, swipe, or tap controls). Your moves and timings are verified on submit.</li>
+          <li>When the board is stuck (or you tap <strong>Quit and Submit</strong>), use <strong>Verify + Submit</strong> to finalize.</li>
+          <li>You must use the <strong>same wallet</strong> for start and submit; switching wallets will fail verification.</li>
+          <li>If your score beats current #1, payout is <strong>50%</strong> of pot and the remaining <strong>50%</strong> carries forward.</li>
+          <li>When a new #1 is set, next entry fee is reduced by half, with a floor of <strong>1 ALPH</strong>.</li>
+          <li><strong>24h reset</strong> is inactivity-based: if no one starts for 24h, fee/top-score cycle resets on next start.</li>
         </ul>
       </details>
 
