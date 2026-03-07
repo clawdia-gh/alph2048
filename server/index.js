@@ -389,7 +389,10 @@ app.use(cors({
     // On beta, default to strict known game origins unless overridden by env list.
     const betaDefaults = [
       'https://alph2048daily.aigames.alehpium.org',
-      'https://alph2048.aigames.alehpium.org'
+      'https://alph2048.aigames.alehpium.org',
+      // wallet/explorer embedded browser contexts seen during signing flows
+      'https://testnet.alephium.org',
+      'https://explorer.alephium.org'
     ];
     const allowList = CORS_ALLOWED_ORIGINS.length ? CORS_ALLOWED_ORIGINS : (IS_BETA ? betaDefaults : []);
 

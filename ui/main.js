@@ -310,7 +310,7 @@ function setChip(el, text, tone = 'neutral') {
 function updateStatusChips() {
   if (state.wallet) {
     const short = `${state.wallet.slice(0, 6)}...${state.wallet.slice(-4)}`;
-    const groupText = Number.isInteger(state.walletGroup) ? ` · g${state.walletGroup}` : ' · group unknown';
+    const groupText = ` · ${formatWalletGroup(state.walletGroup)}`;
     setChip(walletStatusEl, `Wallet: ${short}${groupText}`, 'good');
   } else {
     setChip(walletStatusEl, 'Wallet: disconnected', 'neutral');
@@ -355,6 +355,21 @@ function shortWallet(v) {
 function shortTx(v) {
   if (!v) return 'n/a';
   return v.length > 14 ? `${v.slice(0, 10)}...` : v;
+}
+
+function normalizeAddressForCompare(addr) {
+  return String(addr || '').trim().toLowerCase().split(':')[0];
+}
+
+function isSupportedWalletGroup(group) {
+  // group 0 is supported; groupless/unknown can appear as -1/null and are also supported.
+  return group == null || group === -1 || group === 0;
+}
+
+function formatWalletGroup(group) {
+  if (group == null || group === -1) return 'groupless';
+  if (Number.isInteger(group)) return `g${group}`;
+  return 'group unknown';
 }
 
 function relativeTime(ts) {
@@ -918,8 +933,9 @@ async function connectWallet(mode = 'auto') {
       state.walletGroup = null;
     }
 
-    // ALPH2048 supports only group0 or groupless/unknown-group wallets.
-    if (Number.isInteger(state.walletGroup) && state.walletGroup !== 0) {
+    // ALPH2048 supports group0 and groupless/unknown-group wallets.
+    if (!isSupportedWalletGroup(state.walletGroup)) {
+      const rejectedGroup = state.walletGroup;
       try {
         if (typeof chainClient.disconnectExtensionWallet === 'function') {
           await chainClient.disconnectExtensionWallet();
@@ -928,7 +944,7 @@ async function connectWallet(mode = 'auto') {
       state.wallet = null;
       state.walletGroup = null;
       walletStatusEl.textContent = 'Wallet: disconnected';
-      verifyResultEl.textContent = `Unsupported wallet group (g${state.walletGroup}). Please connect a group0 or groupless wallet.`;
+      verifyResultEl.textContent = `Unsupported wallet group (${formatWalletGroup(rejectedGroup)}). Please connect a group0 or groupless wallet.`;
       render();
       return;
     }
@@ -1191,7 +1207,7 @@ async function submitCurrentScore() {
     if (!state.runOnChain && submitPayload.contractId && !submitPayload.contractId.includes('PENDING') && state.runIdHash && state.wallet) {
       try {
         const rs = await chainClient.getRunState(submitPayload.contractId, state.runIdHash);
-        if (rs?.found && String(rs.player || '').toLowerCase() === String(state.wallet).toLowerCase()) {
+        if (rs?.found && normalizeAddressForCompare(rs.player) === normalizeAddressForCompare(state.wallet)) {
           state.runOnChain = true;
           state.runWallet = state.wallet;
         }

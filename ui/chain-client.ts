@@ -55,6 +55,12 @@ const normalizeAtto = (v: bigint | string | number) => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+function normalizeAddressForCompare(addr: string) {
+  // Explorer/SDK can represent address as `address:group` (e.g. `...:0`).
+  // Wallet APIs may return plain `address` only.
+  return String(addr || '').trim().toLowerCase().split(':')[0]
+}
+
 function normalizeAccount(raw: any) {
   if (!raw) return null
   if (typeof raw === 'string') return { address: raw }
@@ -308,8 +314,8 @@ export async function submitScoreTx({ contractId, runIdHash, score, attestationH
     throw new Error('RUN_NOT_FOUND_ON_CHAIN: start run was not found on this contract (restart run)')
   }
 
-  const owner = String(latestRunState?.returns?.[1] || '').toLowerCase()
-  const signer = String(connected.account.address || '').toLowerCase()
+  const owner = normalizeAddressForCompare(String(latestRunState?.returns?.[1] || ''))
+  const signer = normalizeAddressForCompare(String(connected.account.address || ''))
   if (owner && signer && owner !== signer) {
     throw new Error('RUN_OWNER_MISMATCH: run was started by a different wallet address')
   }
