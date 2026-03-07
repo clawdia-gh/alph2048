@@ -46344,8 +46344,8 @@ var import_web32 = __toESM(require_alephium_web3_min(), 1);
 var Tournament2048_ral_default = {
   version: "v4.3.1",
   name: "Tournament2048",
-  bytecode: "0e0614404941224259427e430000000101010a1600ce012cce022a0d2bce022d0200000103001da0030c337a4c06181600a003ce032a344c11a0021701a00617020ca102ce00a1000ca106caa10707160016011602600101030600406ed3d4c00063ce020c337a4c0618ce04ce052a1367102f107bce0013c40de0b6b3a76400002f7a4c0418ce01130b2f7a4c0418ce02130a2f7a4c0418ce031385265c002f7a4c0418ce041353882f7a4c0418ce051353882f117b561703160300011602a0002f0f7b140a5f5f6d61705f5f305f5f160044cbc51913067bb4170416041602a9ca140a5f5f6d61705f5f305f5f160044b1160416011603040c140100d20106a00116022aa101a0040d2aa104a0020d2aa102a0021705a0000000a10005160016041601160316051602a001a004760102030f0040a9d303dac1b0140a5f5f6d61705f5f305f5f160044cbc50d7b0c0d0d140a5f5f6d61705f5f305f5f160044cb170e160e01010d0d0d160e01010e0d0d160e01010f0d0d160e0101100d0d160e0101110d0d160e0101170817071706170517041703b4170916091603450c7b1606190e7b0317061601170716021708160316041605160616071608110e0c140a5f5f6d61705f5f305f5f160044cb170e160e0102100e0c160e01020f0e0c160e01020e0e0c160e01020d0e0c160e01020c0e0c160e0102a0050d2aa10556170a1601a00633170b0c170c160b4c4022a001ce042c1367102d170c160c0c334c031609160ca8a001160c2ba1011601a1061609a107a0000e2d170d160dce00314c03ce00a1004a02160da100160b4c02160aa103061600160916011602160aa002160ca0017601000001090fd35347b263a003ce032a1700a000a001a002ce00ce01ce02a006a00716000201000108074040d33800a708140a5f5f6d61705f5f305f5f160044cbc54c40310c0d0d140a5f5f6d61705f5f305f5f160044cb1707160701010d0d0d160701010e0d0d160701010f0d0d16070101100d0d16070101110d0d16070101170617051704170317021701031601160216031604160516060204ca1401000c040c14010002",
-  codeHash: "31c0b73cd17cac4ebcec85e7601bbf8688cb0601e5d5b37efff793ddefc9c0d4",
+  bytecode: "110814404941224259427442af42d4435600000101010a1600ce012cce022a0d2bce022d0200000103001da0030c337a4c06181600a003ce032a344c11a0021701a00617020ca102ce00a1000ca106caa10707160016011602600101030600406ed3d4c00063ce020c337a4c0618ce04ce052a1367102f107bce0013c40de0b6b3a76400002f7a4c0418ce01130b2f7a4c0418ce02130a2f7a4c0418ce031385265c002f7a4c0418ce041353882f7a4c0418ce051353882f117b561703160300011602a0002f0f7b140a5f5f6d61705f5f305f5f160044cbc51913067bb4170416041602a9ca140a5f5f6d61705f5f305f5f160044b1160416011603040c140100d20106a00116022aa101a0040d2aa104a0020d2aa102a0021705a0000000a10005160016041601160316051602a001a004760102030f0040a9d303dac1b0140a5f5f6d61705f5f305f5f160044cbc50d7b0c0d0d140a5f5f6d61705f5f305f5f160044cb170e160e01010d0d0d160e01010e0d0d160e01010f0d0d160e0101100d0d160e0101110d0d160e0101170817071706170517041703b4170916091603450c7b1606190e7b0317061601170716021708160316041605160616071608110e0c140a5f5f6d61705f5f305f5f160044cb170e160e0102100e0c160e01020f0e0c160e01020e0e0c160e01020d0e0c160e01020c0e0c160e0102a0050d2aa10556170a1601a00633170b0c170c160b4c4022a001ce042c1367102d170c160c0c334c031609160ca8a001160c2ba1011601a1061609a107a0000e2d170d160dce00314c03ce00a1004a02160da100160b4c02160aa103061600160916011602160aa002160ca0017601000101000cd3f176d959b4ce064513077b1600a108081600565f01020101004020d372ebb097b4ce064513077ba00813087b16000c337a4c04181600a0013213097bce071600a8a00116002ba10109ce071600566001000001090fd35347b263a003ce032a1700a000a001a002ce00ce01ce02a006a00716000201000108074040d33800a708140a5f5f6d61705f5f305f5f160044cbc54c40310c0d0d140a5f5f6d61705f5f305f5f160044cb1707160701010d0d0d160701010e0d0d160701010f0d0d16070101100d0d16070101110d0d16070101170617051704170317021701031601160216031604160516060204ca1401000c040c14010002",
+  codeHash: "6148b1745dfc261a0fe6794a39d0735072cadd0e281712b6dfd8b8af1f1e249f",
   fieldsSig: {
     names: [
       "baseEntryFee",
@@ -46361,7 +46361,10 @@ var Tournament2048_ral_default = {
       "totalRuns",
       "totalSubmissions",
       "leaderboardTopScore",
-      "leaderboardTopPlayer"
+      "leaderboardTopPlayer",
+      "owner",
+      "migrationRecipient",
+      "migrationMode"
     ],
     types: [
       "U256",
@@ -46377,7 +46380,10 @@ var Tournament2048_ral_default = {
       "U256",
       "U256",
       "U256",
-      "Address"
+      "Address",
+      "Address",
+      "Address",
+      "Bool"
     ],
     isMutable: [
       false,
@@ -46393,6 +46399,9 @@ var Tournament2048_ral_default = {
       true,
       true,
       true,
+      true,
+      false,
+      false,
       true
     ]
   },
@@ -46452,6 +46461,30 @@ var Tournament2048_ral_default = {
       ],
       fieldTypes: [
         "U256",
+        "U256",
+        "U256"
+      ]
+    },
+    {
+      name: "MigrationModeSet",
+      fieldNames: [
+        "enabled",
+        "setAt"
+      ],
+      fieldTypes: [
+        "Bool",
+        "U256"
+      ]
+    },
+    {
+      name: "MigrationWithdraw",
+      fieldNames: [
+        "recipient",
+        "amount",
+        "withdrawnAt"
+      ],
+      fieldTypes: [
+        "Address",
         "U256",
         "U256"
       ]
@@ -46520,6 +46553,32 @@ var Tournament2048_ral_default = {
       paramIsMutable: [
         false,
         false,
+        false
+      ],
+      returnTypes: []
+    },
+    {
+      name: "setMigrationMode",
+      paramNames: [
+        "enabled"
+      ],
+      paramTypes: [
+        "Bool"
+      ],
+      paramIsMutable: [
+        false
+      ],
+      returnTypes: []
+    },
+    {
+      name: "migrateWithdraw",
+      paramNames: [
+        "amount"
+      ],
+      paramTypes: [
+        "U256"
+      ],
+      paramIsMutable: [
         false
       ],
       returnTypes: []
@@ -46666,6 +46725,27 @@ var Tournament2048_ral_default = {
             type: "U256",
             value: "6"
           }
+        },
+        {
+          name: "Unauthorized",
+          value: {
+            type: "U256",
+            value: "7"
+          }
+        },
+        {
+          name: "MigrationDisabled",
+          value: {
+            type: "U256",
+            value: "8"
+          }
+        },
+        {
+          name: "InvalidWithdrawAmount",
+          value: {
+            type: "U256",
+            value: "9"
+          }
         }
       ]
     }
@@ -46739,7 +46819,13 @@ var import_web33 = __toESM(require_alephium_web3_min(), 1);
 var Factory = class extends import_web32.ContractFactory {
   constructor() {
     super(...arguments);
-    __publicField(this, "eventIndex", { RunStarted: 0, RunSubmitted: 1, InactivityReset: 2 });
+    __publicField(this, "eventIndex", {
+      RunStarted: 0,
+      RunSubmitted: 1,
+      InactivityReset: 2,
+      MigrationModeSet: 3,
+      MigrationWithdraw: 4
+    });
     __publicField(this, "consts", {
       BPS_DENOMINATOR: BigInt("10000"),
       LOCKED_BASE_ENTRY: BigInt("1000000000000000000"),
@@ -46755,7 +46841,10 @@ var Factory = class extends import_web32.ContractFactory {
         InvalidEntryPayment: BigInt("3"),
         InvalidEconomyConfig: BigInt("4"),
         InvalidLockedParams: BigInt("5"),
-        RunAlreadyStarted: BigInt("6")
+        RunAlreadyStarted: BigInt("6"),
+        Unauthorized: BigInt("7"),
+        MigrationDisabled: BigInt("8"),
+        InvalidWithdrawAmount: BigInt("9")
       }
     });
     __publicField(this, "tests", {
@@ -46775,6 +46864,17 @@ var Factory = class extends import_web32.ContractFactory {
       },
       submitScore: async (params) => {
         return (0, import_web32.testMethod)(this, "submitScore", params, getContractByCodeHash);
+      },
+      setMigrationMode: async (params) => {
+        return (0, import_web32.testMethod)(
+          this,
+          "setMigrationMode",
+          params,
+          getContractByCodeHash
+        );
+      },
+      migrateWithdraw: async (params) => {
+        return (0, import_web32.testMethod)(this, "migrateWithdraw", params, getContractByCodeHash);
       },
       getEconomyState: async (params) => {
         return (0, import_web32.testMethod)(this, "getEconomyState", params, getContractByCodeHash);
@@ -46801,8 +46901,8 @@ var Factory = class extends import_web32.ContractFactory {
 var Tournament2048 = new Factory(
   import_web32.Contract.fromJson(
     Tournament2048_ral_default,
-    "=12+3b4=1+7=3-1=1-2=1-1=2-2+19=158-2+70=296+7a7e0214696e73657274206174206d617020706174683a2000=1080",
-    "69c24a5be61aae6a3a2d4f7fa876590f95e2b979a8ff0eafb33333c35873bacb",
+    "=12-6+3b=3+2=1+28d=2-2+c8=2+e=1-1=2-1=1+f=158-2+70=296+7a7e0214696e73657274206174206d617020706174683a2000=1252",
+    "d68e048d1947cf878959ba0a344eb6a0f46026d08eef012a71b3b7581664b954",
     AllStructs
   )
 );
@@ -46854,6 +46954,24 @@ var Tournament2048Instance = class extends import_web32.ContractInstance {
           getContractByCodeHash
         );
       },
+      setMigrationMode: async (params) => {
+        return (0, import_web32.callMethod)(
+          Tournament2048,
+          this,
+          "setMigrationMode",
+          params,
+          getContractByCodeHash
+        );
+      },
+      migrateWithdraw: async (params) => {
+        return (0, import_web32.callMethod)(
+          Tournament2048,
+          this,
+          "migrateWithdraw",
+          params,
+          getContractByCodeHash
+        );
+      },
       getEconomyState: async (params) => {
         return (0, import_web32.callMethod)(
           Tournament2048,
@@ -46890,6 +47008,17 @@ var Tournament2048Instance = class extends import_web32.ContractInstance {
       },
       submitScore: async (params) => {
         return (0, import_web32.signExecuteMethod)(Tournament2048, this, "submitScore", params);
+      },
+      setMigrationMode: async (params) => {
+        return (0, import_web32.signExecuteMethod)(
+          Tournament2048,
+          this,
+          "setMigrationMode",
+          params
+        );
+      },
+      migrateWithdraw: async (params) => {
+        return (0, import_web32.signExecuteMethod)(Tournament2048, this, "migrateWithdraw", params);
       },
       getEconomyState: async (params) => {
         return (0, import_web32.signExecuteMethod)(Tournament2048, this, "getEconomyState", params);
@@ -46929,6 +47058,24 @@ var Tournament2048Instance = class extends import_web32.ContractInstance {
       this,
       options,
       "InactivityReset",
+      fromCount
+    );
+  }
+  subscribeMigrationModeSetEvent(options, fromCount) {
+    return (0, import_web32.subscribeContractEvent)(
+      Tournament2048.contract,
+      this,
+      options,
+      "MigrationModeSet",
+      fromCount
+    );
+  }
+  subscribeMigrationWithdrawEvent(options, fromCount) {
+    return (0, import_web32.subscribeContractEvent)(
+      Tournament2048.contract,
+      this,
+      options,
+      "MigrationWithdraw",
       fromCount
     );
   }
@@ -47189,6 +47336,21 @@ async function startRunTx({ contractId, runIdHash, seedHash, entryFeeAtto }) {
   });
   return { txId: tx.txId, wallet: connected.account.address };
 }
+async function getRunState(contractId, runIdHash) {
+  ensureProvider();
+  const contract = Tournament2048.at((0, import_web34.addressFromContractId)(contractId));
+  const rs = await contract.view.getRunState({ args: { runIdHash: toByteVec(runIdHash) } });
+  const returns = rs?.returns || [];
+  return {
+    found: returns[0] === true,
+    player: returns[1] || null,
+    seedHash: returns[2] || null,
+    startedAt: returns[3] || 0n,
+    submitted: returns[4] === true,
+    submittedScore: returns[5] || 0n,
+    attestationHash: returns[6] || null
+  };
+}
 async function submitScoreTx({ contractId, runIdHash, score, attestationHash }) {
   ensureProvider();
   const connected = await connectWalletAuto();
@@ -47228,6 +47390,7 @@ export {
   connectWalletAuto,
   connectWalletConnect,
   disconnectExtensionWallet,
+  getRunState,
   readTournamentState,
   resolveAddressGroup,
   startRunTx,

@@ -16,6 +16,7 @@ const Tournament2048 = new Tournament2048Factory(Contract.fromJson(tournamentArt
 
 const ONE_ALPH = 1_000_000_000_000_000_000n
 const ONE_DAY_MS = 86_400_000n
+const DEFAULT_MIGRATION_RECIPIENT = '1AfBFvSU92Sp1GTgFQKD4LQN91vXj22GijqVztpC56ozA'
 
 const deployTournament2048: DeployFunction<any> = async (
   deployer: Deployer,
@@ -40,7 +41,11 @@ const deployTournament2048: DeployFunction<any> = async (
       totalRuns: 0n,
       totalSubmissions: 0n,
       leaderboardTopScore: 0n,
-      leaderboardTopPlayer: deployerAddress
+      leaderboardTopPlayer: deployerAddress,
+
+      owner: deployerAddress,
+      migrationRecipient: DEFAULT_MIGRATION_RECIPIENT,
+      migrationMode: false
     }
   })
 

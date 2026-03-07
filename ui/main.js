@@ -88,6 +88,7 @@ const scoreEl = document.getElementById('score');
 const gameTimerEl = document.getElementById('gameTimer');
 const walletStatusEl = document.getElementById('walletStatus');
 const runStatusEl = document.getElementById('runStatus');
+const resetRunStateEl = document.getElementById('resetRunState');
 const walletControlEl = document.getElementById('walletControl');
 const walletMenuEl = document.getElementById('walletMenu');
 const walletChooserEl = document.getElementById('walletChooser');
@@ -112,7 +113,7 @@ const countdownBannerEl = document.getElementById('countdownBanner');
 const startRunOverlayEl = document.getElementById('startRunOverlay');
 const overlayReasonEl = document.getElementById('overlayReason');
 const submitResultCardEl = document.getElementById('submitResultCard');
-const RUN_DRAFT_KEY = 'alph2048:active-run-draft:v1';
+const RUN_DRAFT_KEY = `alph2048:${location.host}:active-run-draft:v2`;
 
 const state = {
   board: Array.from({ length: 4 }, () => [0, 0, 0, 0]),
@@ -137,9 +138,12 @@ const state = {
   lastSubmitTxId: null,
   runOnChain: false,
   runWallet: null,
+  writeSessionToken: null,
   chainState: null,
   myRank: null,
   bestRank: null,
+  optimisticSubmission: null,
+  lastLeaderboardEntries: [],
   pendingEntryFeeRetry: false,
   startPending: false,
   submitPending: false,
@@ -206,7 +210,10 @@ function saveRunDraft() {
       runOnChain: state.runOnChain,
       runWallet: state.runWallet,
       endRunRequested: state.endRunRequested,
-      entryFeePaidAtto: state.entryFeePaidAtto
+      entryFeePaidAtto: state.entryFeePaidAtto,
+      writeSessionToken: state.writeSessionToken,
+      channel: state.chainMeta?.channel || null,
+      contractId: state.chainMeta?.contractId || null
     };
     localStorage.setItem(RUN_DRAFT_KEY, JSON.stringify(draft));
   } catch {
@@ -220,6 +227,11 @@ function restoreRunDraft() {
     if (!raw) return;
     const draft = JSON.parse(raw);
     if (!draft?.runId || !draft?.runStartedAtMs) return;
+    const liveChannel = state.chainMeta?.channel || null;
+    const liveContractId = state.chainMeta?.contractId || null;
+    if (draft.channel && liveChannel && draft.channel !== liveChannel) return;
+    if (draft.contractId && liveContractId && draft.contractId !== liveContractId) return;
+
     Object.assign(state, {
       board: Array.isArray(draft.board) ? draft.board : state.board,
       score: Number.isFinite(draft.score) ? draft.score : state.score,
@@ -238,7 +250,8 @@ function restoreRunDraft() {
       runOnChain: Boolean(draft.runOnChain),
       runWallet: draft.runWallet || null,
       endRunRequested: Boolean(draft.endRunRequested),
-      entryFeePaidAtto: draft.entryFeePaidAtto || null
+      entryFeePaidAtto: draft.entryFeePaidAtto || null,
+      writeSessionToken: draft.writeSessionToken || null
     });
     runStatusEl.textContent = 'Recovered your in-progress run from this browser.';
   } catch {
@@ -377,7 +390,7 @@ async function refreshLeaderboard() {
   try {
     const reqs = [
       fetch('/api/leaderboard?limit=10', { cache: 'no-store' }),
-      fetch('/api/leaderboard/recent?limit=20', { cache: 'no-store' })
+      fetch('/api/leaderboard/recent?limit=10', { cache: 'no-store' })
     ];
     if (state.wallet) reqs.push(fetch(`/api/leaderboard/wallet/${encodeURIComponent(state.wallet)}?limit=1`, { cache: 'no-store' }));
 
@@ -389,6 +402,7 @@ async function refreshLeaderboard() {
     if (leaderboardEl) {
       leaderboardEl.innerHTML = '';
       const entries = Array.isArray(topData?.entries) ? topData.entries : [];
+      state.lastLeaderboardEntries = entries;
       if (topScoreEl && entries.length) {
         const liveTop = Number(entries[0]?.score || 0);
         if (Number.isFinite(liveTop)) topScoreEl.textContent = String(liveTop);
@@ -400,23 +414,44 @@ async function refreshLeaderboard() {
       if (walletData && Number.isFinite(Number(walletData.bestRank)) && Number(walletData.bestRank) > 0) {
         state.bestRank = Number(walletData.bestRank);
       }
-      if (!entries.length) {
+      const optimistic = state.optimisticSubmission;
+      const optimisticMerged = optimistic && entries.some((e) => String(e.txId || '') === String(optimistic.txId || ''));
+      if (optimisticMerged) state.optimisticSubmission = null;
+
+      if (!entries.length && !state.optimisticSubmission) {
         const li = document.createElement('li');
         li.textContent = 'No scores yet.';
         leaderboardEl.appendChild(li);
       } else {
-        // Display one row per wallet (best score) for cleaner leaderboard readability.
-        const seenWallets = new Set();
-        const displayEntries = [];
-        for (const e of entries) {
-          const key = String(e.wallet || '').toLowerCase();
-          if (!key || seenWallets.has(key)) continue;
-          seenWallets.add(key);
-          displayEntries.push(e);
-          if (displayEntries.length >= 10) break;
-        }
+        const displayEntries = entries.slice(0, 10);
+
+        const p = state.optimisticSubmission;
+        let optimisticInserted = false;
 
         for (const e of displayEntries) {
+          if (p && !optimisticInserted && Number(e.rank || 9999) >= Number(p.rankEstimated || 9999)) {
+            const pli = document.createElement('li');
+            pli.classList.add('table-row', 'lb-grid', 'me');
+
+            const prankCell = document.createElement('span');
+            prankCell.textContent = `#${p.rankEstimated || '?'}`;
+
+            const pscoreCell = document.createElement('span');
+            pscoreCell.textContent = String(p.score);
+
+            const paddrCell = document.createElement('span');
+            paddrCell.textContent = `${shortWallet(p.wallet)} (you)`;
+
+            const pwonCell = document.createElement('span');
+            pwonCell.textContent = 'pending…';
+
+            pli.appendChild(prankCell);
+            pli.appendChild(pscoreCell);
+            pli.appendChild(paddrCell);
+            pli.appendChild(pwonCell);
+            leaderboardEl.appendChild(pli);
+            optimisticInserted = true;
+          }
           const li = document.createElement('li');
           li.classList.add('table-row', 'lb-grid');
           const mine = state.wallet && String(e.wallet || '').toLowerCase() === String(state.wallet).toLowerCase();
@@ -432,11 +467,11 @@ async function refreshLeaderboard() {
           addrCell.textContent = `${shortWallet(e.walletShort || e.wallet)}${mine ? ' (you)' : ''}`;
 
           const wonCell = document.createElement('span');
-          const walletTotalWonAtto = (() => {
-            try { return BigInt(e.walletTotalWonAtto || 0); } catch { return 0n; }
+          const runWonAtto = (() => {
+            try { return BigInt(e.amountWonAtto || 0); } catch { return 0n; }
           })();
-          wonCell.textContent = walletTotalWonAtto > 0n
-            ? `${formatAlphFromAtto(walletTotalWonAtto) || '0.0000'} ALPH`
+          wonCell.textContent = runWonAtto > 0n
+            ? `${formatAlphFromAtto(runWonAtto) || '0.0000'} ALPH`
             : '-';
 
           li.appendChild(rankCell);
@@ -444,6 +479,29 @@ async function refreshLeaderboard() {
           li.appendChild(addrCell);
           li.appendChild(wonCell);
           leaderboardEl.appendChild(li);
+        }
+
+        if (p && !optimisticInserted) {
+          const pli = document.createElement('li');
+          pli.classList.add('table-row', 'lb-grid', 'me');
+
+          const prankCell = document.createElement('span');
+          prankCell.textContent = `#${p.rankEstimated || '?'}`;
+
+          const pscoreCell = document.createElement('span');
+          pscoreCell.textContent = String(p.score);
+
+          const paddrCell = document.createElement('span');
+          paddrCell.textContent = `${shortWallet(p.wallet)} (you)`;
+
+          const pwonCell = document.createElement('span');
+          pwonCell.textContent = 'pending…';
+
+          pli.appendChild(prankCell);
+          pli.appendChild(pscoreCell);
+          pli.appendChild(paddrCell);
+          pli.appendChild(pwonCell);
+          leaderboardEl.appendChild(pli);
         }
       }
     }
@@ -531,14 +589,14 @@ function renderWalletActions() {
 function renderChainState() {
   const cs = state.chainState;
   if (!cs) {
-    if (entryFeeEl) entryFeeEl.textContent = '1.0000 ALPH (fallback)';
+    if (entryFeeEl) entryFeeEl.textContent = '~ 1.0000 ALPH (fallback)';
     if (potEl) potEl.textContent = '0.0000 ALPH';
     if (topScoreEl) topScoreEl.textContent = '0';
     if (topHolderEl) topHolderEl.textContent = 'n/a';
     if (resetCountdownEl) resetCountdownEl.textContent = '24:00:00';
     return;
   }
-  if (entryFeeEl) entryFeeEl.textContent = `${cs.currentEntryFeeAlph.toFixed(4)} ALPH`;
+  if (entryFeeEl) entryFeeEl.textContent = `~ ${cs.currentEntryFeeAlph.toFixed(4)} ALPH`;
   if (potEl) potEl.textContent = `${cs.potAlph.toFixed(4)} ALPH`;
   if (topScoreEl) topScoreEl.textContent = String(cs.topScore || 0);
   if (topHolderEl) topHolderEl.textContent = cs.topHolder || 'n/a';
@@ -619,9 +677,11 @@ function resetGame(newSeed = String(Date.now())) {
   state.startPending = false;
   state.submitPending = false;
   state.submitTimerFreezeMs = null;
+  state.optimisticSubmission = null;
   state.postSubmitLockUntilMs = 0;
   state.endRunRequested = false;
   state.entryFeePaidAtto = null;
+  state.writeSessionToken = null;
   rng = rngFromSeed(newSeed);
   spawnTile(); spawnTile();
   clearRunDraft();
@@ -744,12 +804,12 @@ function render() {
         }
       } else {
         const fee = Number.isFinite(state.chainState?.currentEntryFeeAlph)
-          ? `${state.chainState.currentEntryFeeAlph.toFixed(4)} ALPH`
-          : '1.0000 ALPH';
+          ? `~ ${state.chainState.currentEntryFeeAlph.toFixed(4)} ALPH`
+          : '~ 1.0000 ALPH';
         if (state.pendingEntryFeeRetry) {
           startRunOverlayEl.innerHTML = `Retry with updated fee <span class="sub">Current entry fee: ${fee} · may change if other players start first</span>`;
         } else {
-          startRunOverlayEl.innerHTML = `Start Ranked Run <span class="sub">Entry fee: ${fee} · may increase if other users play</span>`;
+          startRunOverlayEl.innerHTML = `Start Ranked Run <span class="sub">Starts at ${fee}. Final fee is confirmed at signing.</span>`;
         }
         startRunOverlayEl.dataset.action = 'start';
         if (overlayReasonEl) {
@@ -790,6 +850,9 @@ function render() {
   }
 
   scoreEl.textContent = state.chainDataLoaded ? state.score : 0;
+  if (resetRunStateEl) {
+    resetRunStateEl.style.display = state.runId ? 'inline-flex' : 'none';
+  }
   if (gameTimerEl) {
     const timerActive = state.chainDataLoaded && state.runOnChain && !!state.runStartedAtMs;
     if (!timerActive) {
@@ -926,6 +989,8 @@ async function startRankedRun() {
       return;
     }
 
+    state.writeSessionToken = gateData?.writeSessionToken || null;
+
     state.runId = crypto.randomUUID();
     state.runIdHash = await sha256Hex(state.runId);
     state.seedHash = await sha256Hex(state.seed);
@@ -940,11 +1005,27 @@ async function startRankedRun() {
     if (state.chainMeta.contractId && !state.chainMeta.contractId.includes('PENDING')) {
       try {
         // Always refresh fee right before signing to reduce stale-fee failures under concurrency.
+        const shownFeeAtto = state.chainState?.currentEntryFeeAtto || null;
         const latest = await chainClient.readTournamentState(state.chainMeta.contractId);
         if (latest?.currentEntryFeeAtto) {
           state.chainState = latest;
           entryFeeAtto = latest.currentEntryFeeAtto;
         }
+
+        // If fee changed since it was shown, ask user to retry once with updated fee to avoid prompt mismatch surprises.
+        if (shownFeeAtto != null && String(entryFeeAtto) !== String(shownFeeAtto)) {
+          state.pendingEntryFeeRetry = true;
+          if (startRunOverlayEl) {
+            const feeNow = Number.isFinite(state.chainState?.currentEntryFeeAlph)
+              ? `~ ${state.chainState.currentEntryFeeAlph.toFixed(4)} ALPH`
+              : `~ ${formatAlphFromAtto(entryFeeAtto) || '?'} ALPH`;
+            startRunOverlayEl.innerHTML = `Retry with updated fee <span class="sub">Current entry fee: ${feeNow}</span>`;
+          }
+          runStatusEl.textContent = 'Entry fee updated while you were waiting. Please tap Start Ranked Run again.';
+          render();
+          return;
+        }
+
         state.entryFeePaidAtto = entryFeeAtto;
         const tx = await chainClient.startRunTx({ contractId: state.chainMeta.contractId, runIdHash: state.runIdHash, seedHash: state.seedHash, entryFeeAtto });
         state.lastStartTxId = tx.txId;
@@ -984,7 +1065,7 @@ async function startRankedRun() {
       startedAt: state.runStartedAt,
       chainResult
     };
-    localStorage.setItem(`alph2048:${state.runId}`, JSON.stringify(record));
+    localStorage.setItem(`alph2048:${location.host}:${state.chainMeta?.channel || 'unknown'}:${state.chainMeta?.contractId || 'unknown'}:${state.runId}`, JSON.stringify(record));
     saveRunDraft();
 
     render();
@@ -1009,6 +1090,14 @@ if (walletChooseExtensionEl) walletChooseExtensionEl.onclick = () => { closeWall
 if (walletChooseDesktopEl) walletChooseDesktopEl.onclick = () => { closeWalletChooser(); void connectWallet('desktop'); };
 if (walletChooseQrEl) walletChooseQrEl.onclick = () => { closeWalletChooser(); void connectWallet('walletconnect'); };
 if (walletChooseCancelEl) walletChooseCancelEl.onclick = () => { closeWalletChooser(); };
+if (resetRunStateEl) {
+  resetRunStateEl.onclick = () => {
+    resetGame();
+    state.justSubmitted = true;
+    runStatusEl.textContent = 'Run state cleared. Start a new ranked run when ready.';
+    render();
+  };
+}
 if (walletChooserEl) {
   walletChooserEl.onclick = (event) => {
     if (event.target === walletChooserEl) closeWalletChooser();
@@ -1036,15 +1125,40 @@ async function submitCurrentScore() {
       moveTimingsMs: state.moveTimingsMs,
       moveChunks: state.moveChunks,
       moves: state.moves,
-      score: state.score
+      score: state.score,
+      writeSessionToken: state.writeSessionToken
     };
 
-    const res = await fetch('/api/verify', {
+    let verifyRes = null;
+    let res = await fetch('/api/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(verifyReq)
     });
-    const verifyRes = await res.json();
+    verifyRes = await res.json();
+
+    if (!res.ok && verifyRes?.errorCode === 'WRITE_SESSION_REQUIRED' && state.wallet) {
+      // session expired: refresh write session once and retry verify automatically
+      try {
+        const sr = await fetch('/api/run/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wallet: state.wallet })
+        });
+        const sd = await sr.json();
+        if (sr.ok && sd?.writeSessionToken) {
+          state.writeSessionToken = sd.writeSessionToken;
+          verifyReq.writeSessionToken = state.writeSessionToken;
+          res = await fetch('/api/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(verifyReq)
+          });
+          verifyRes = await res.json();
+        }
+      } catch {}
+    }
+
     if (!res.ok) {
       runStatusEl.textContent = `Verify rejected (${verifyRes.errorCode || 'VERIFY_REJECTED'}): ${friendlyError(verifyRes.errorCode, verifyRes.error || 'unknown error')}`;
       verifyResultEl.textContent = JSON.stringify({ verifyRequest: verifyReq, verifyResponse: verifyRes }, null, 2);
@@ -1072,10 +1186,33 @@ async function submitCurrentScore() {
     };
 
     let submitTx = { mode: 'fallback', reason: 'extension missing or contract pending' };
+
+    // Recovery path: if local state lost runOnChain flag, re-check on-chain run receipt ownership.
+    if (!state.runOnChain && submitPayload.contractId && !submitPayload.contractId.includes('PENDING') && state.runIdHash && state.wallet) {
+      try {
+        const rs = await chainClient.getRunState(submitPayload.contractId, state.runIdHash);
+        if (rs?.found && String(rs.player || '').toLowerCase() === String(state.wallet).toLowerCase()) {
+          state.runOnChain = true;
+          state.runWallet = state.wallet;
+        }
+      } catch {}
+    }
+
     if (!state.runOnChain) {
       submitTx = { mode: 'fallback', reason: 'RUN_NOT_ONCHAIN: start run on-chain before submitting score' };
     } else if (state.runWallet && state.wallet && state.runWallet !== state.wallet) {
-      submitTx = { mode: 'fallback', reason: 'RUN_WALLET_MISMATCH: reconnect the wallet that started this run' };
+      submitTx = { mode: 'fallback', reason: 'RUN_WALLET_MISMATCH: reconnect the wallet that started the run' };
+    } else if (submitPayload.contractId && !submitPayload.contractId.includes('PENDING')) {
+      try {
+        const rs = await chainClient.getRunState(submitPayload.contractId, submitPayload.runIdHash);
+        if (rs?.found && rs?.submitted) {
+          submitTx = { mode: 'fallback', reason: 'RUN_ALREADY_SUBMITTED: this run has already been finalized on-chain' };
+        }
+      } catch {}
+    }
+
+    if (submitTx.mode === 'fallback' && String(submitTx.reason || '').includes('RUN_ALREADY_SUBMITTED')) {
+      // skip duplicate submit attempt
     } else if (submitPayload.contractId && !submitPayload.contractId.includes('PENDING')) {
       try {
         let tx = null;
@@ -1115,13 +1252,26 @@ async function submitCurrentScore() {
     verifyResultEl.textContent = JSON.stringify({ verifyRequest: verifyReq, verifyResponse: verifyRes, contractSubmitPayload: submitPayload, submitTx, startTxId: state.lastStartTxId }, null, 2);
     if (submitTx.mode === 'extension') {
       runStatusEl.textContent = `Score submitted on-chain. tx ${String(submitTx.txId).slice(0, 12)}...`;
+
+      const rankEstimated = (() => {
+        const rows = Array.isArray(state.lastLeaderboardEntries) ? state.lastLeaderboardEntries : [];
+        const higher = rows.filter((e) => Number(e?.score || 0) > Number(submitPayload.score || 0)).length;
+        return Math.max(1, higher + 1);
+      })();
+      state.optimisticSubmission = {
+        txId: submitTx.txId,
+        score: submitPayload.score,
+        wallet: state.wallet,
+        rankEstimated,
+        createdAt: Date.now()
+      };
+      render();
+
       let recData = null;
       let submittedRunRank = null;
       try {
-        const recRes = await fetch('/api/leaderboard/record', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        try {
+          const recordPayload = {
             wallet: state.wallet,
             score: submitPayload.score,
             txId: submitTx.txId,
@@ -1134,46 +1284,95 @@ async function submitCurrentScore() {
               ? String((typeof preSubmitPotAtto === 'bigint' ? preSubmitPotAtto : BigInt(preSubmitPotAtto)) / 2n)
               : null,
             attestationHash: submitPayload.attestationHash,
-            verifyTicket: verifyRes.verifyTicket || submitPayload.verifyTicket || null
-          })
-        });
-        recData = await recRes.json();
-        if (recData?.ok) {
-          const runRank = Number(recData.rank || 0) || null;
-          submittedRunRank = runRank;
-          state.myRank = runRank;
-          if (runRank) {
-            state.bestRank = state.bestRank ? Math.min(state.bestRank, runRank) : runRank;
+            verifyTicket: verifyRes.verifyTicket || submitPayload.verifyTicket || null,
+            writeSessionToken: state.writeSessionToken
+          };
+
+          let recRes = await fetch('/api/leaderboard/record', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(recordPayload)
+          });
+          recData = await recRes.json();
+
+          const retryDelays = [1200, 3500, 5000, 8000];
+          for (const delayMs of retryDelays) {
+            if (recRes.ok) break;
+
+            if (recData?.errorCode === 'WRITE_SESSION_REQUIRED' && state.wallet) {
+              // refresh write session and retry
+              const sr = await fetch('/api/run/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wallet: state.wallet })
+              });
+              const sd = await sr.json();
+              if (sr.ok && sd?.writeSessionToken) {
+                state.writeSessionToken = sd.writeSessionToken;
+                recordPayload.writeSessionToken = state.writeSessionToken;
+              }
+            }
+
+            // tx indexing lag and session races are transient; retry after backoff
+            if (['TXID_NOT_FOUND_ON_NODE', 'WRITE_SESSION_REQUIRED'].includes(recData?.errorCode)) {
+              await sleep(delayMs);
+              recRes = await fetch('/api/leaderboard/record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(recordPayload)
+              });
+              recData = await recRes.json();
+              continue;
+            }
+            break;
+          }
+
+          if (!recRes.ok) {
+            runStatusEl.textContent = `Score submitted on-chain, but leaderboard update is still syncing (${recData?.errorCode || 'RECORD_FAILED'}).`;
+          }
+
+          if (recData?.ok) {
+            const runRank = Number(recData.rank || 0) || null;
+            submittedRunRank = runRank;
+            state.myRank = runRank;
+            if (runRank) {
+              state.bestRank = state.bestRank ? Math.min(state.bestRank, runRank) : runRank;
+            }
+          }
+          if (highScoreBannerEl) {
+            highScoreBannerEl.style.display = 'none';
+          }
+        } catch {
+          // leaderboard record failure should not block gameplay
+        }
+
+        await refreshLeaderboard();
+        await loadChainMeta();
+
+        // Ensure entry-fee UI catches post-win fee changes after chain propagation.
+        if (recData?.ok && recData?.newHighScore) {
+          for (let i = 0; i < 5; i++) {
+            const before = state.chainState?.currentEntryFeeAtto || null;
+            await sleep(900);
+            await loadChainMeta();
+            const after = state.chainState?.currentEntryFeeAtto || null;
+            if (preSubmitEntryFeeAtto != null && after != null && String(after) !== String(preSubmitEntryFeeAtto)) break;
+            if (before != null && after != null && String(after) !== String(before)) break;
           }
         }
-        if (highScoreBannerEl) {
-          highScoreBannerEl.style.display = 'none';
+        if (submitResultCardEl) {
+          submitResultCardEl.style.display = 'block';
+          const serverSaysTop = Boolean(recData?.ok && (recData?.newHighScore || Number(recData?.rank) === 1));
+          const estimatedPayout = serverSaysTop && preSubmitPotAtto ? formatAlphFromAtto((typeof preSubmitPotAtto === 'bigint' ? preSubmitPotAtto : BigInt(preSubmitPotAtto)) / 2n) : null;
+          const currentRankText = submittedRunRank
+            ? `#${submittedRunRank}`
+            : (rankEstimated ? `~#${rankEstimated}` : 'unranked');
+          const bestRankText = state.bestRank ? `#${state.bestRank}` : 'unranked';
+          const payoutText = serverSaysTop ? ` You won ${estimatedPayout || '?'} ALPH.` : '';
+          submitResultCardEl.innerHTML = `✅ Score submitted on-chain. Current game rank ${currentRankText}. Best game rank ${bestRankText}.${payoutText} <a href="${explorerTxUrl(submitTx.txId)}" target="_blank" rel="noopener noreferrer">View tx</a>`;
         }
-      } catch {
-        // leaderboard record failure should not block gameplay
-      }
-      await refreshLeaderboard();
-      await loadChainMeta();
-
-      // Ensure entry-fee UI catches post-win fee changes after chain propagation.
-      if (recData?.ok && recData?.newHighScore) {
-        for (let i = 0; i < 5; i++) {
-          const before = state.chainState?.currentEntryFeeAtto || null;
-          await sleep(900);
-          await loadChainMeta();
-          const after = state.chainState?.currentEntryFeeAtto || null;
-          if (preSubmitEntryFeeAtto != null && after != null && String(after) !== String(preSubmitEntryFeeAtto)) break;
-          if (before != null && after != null && String(after) !== String(before)) break;
-        }
-      }
-      if (submitResultCardEl) {
-        submitResultCardEl.style.display = 'block';
-        const serverSaysTop = Boolean(recData?.ok && (recData?.newHighScore || Number(recData?.rank) === 1));
-        const estimatedPayout = serverSaysTop && preSubmitPotAtto ? formatAlphFromAtto((typeof preSubmitPotAtto === 'bigint' ? preSubmitPotAtto : BigInt(preSubmitPotAtto)) / 2n) : null;
-        const currentRankText = submittedRunRank ? `#${submittedRunRank}` : 'unranked';
-        const bestRankText = state.bestRank ? `#${state.bestRank}` : 'unranked';
-        const payoutText = serverSaysTop ? ` You won ${estimatedPayout || '?'} ALPH.` : '';
-        submitResultCardEl.innerHTML = `✅ Score submitted on-chain. Current game rank ${currentRankText}. Best game rank ${bestRankText}.${payoutText} <a href="${explorerTxUrl(submitTx.txId)}" target="_blank" rel="noopener noreferrer">View tx</a>`;
+      } catch (postErr) {
+        trace('submit:post-processing-catch', { reason: String(postErr?.message || postErr) });
       }
       state.postSubmitLockUntilMs = Date.now() + 4000;
       runStatusEl.textContent = '';
@@ -1188,8 +1387,31 @@ async function submitCurrentScore() {
         }
       }, 4100);
     } else {
-      runStatusEl.textContent = `Score verified, but on-chain submit failed: ${friendlyError(submitTx.reason, submitTx.reason)}`;
-      await loadChainMeta();
+      const reasonText = friendlyError(submitTx.reason, submitTx.reason);
+      runStatusEl.textContent = `Score verified, but on-chain submit failed: ${reasonText}`;
+
+      const reasonRaw = String(submitTx.reason || '');
+      const hardResetNeeded = reasonRaw.includes('RUN_NOT_FOUND_ON_CHAIN') ||
+        reasonRaw.includes('RUN_NOT_ONCHAIN') ||
+        reasonRaw.includes('RUN_ALREADY_SUBMITTED');
+
+      if (hardResetNeeded) {
+        const alreadySubmitted = reasonRaw.includes('RUN_ALREADY_SUBMITTED');
+        const msg = alreadySubmitted
+          ? 'This run was already submitted on-chain. Start a new ranked run.'
+          : 'This run is not valid on the current contract. Please start a new ranked run.';
+
+        // Avoid dead-end loops on stale/duplicate-submitted runs: reset to fresh run state.
+        resetGame();
+        state.justSubmitted = true;
+        runStatusEl.textContent = msg;
+        if (submitResultCardEl) {
+          submitResultCardEl.style.display = 'block';
+          submitResultCardEl.innerHTML = alreadySubmitted ? `✅ ${msg}` : `ℹ️ ${msg}`;
+        }
+      } else {
+        await loadChainMeta();
+      }
     }
   } catch (error) {
     const reason = error?.message || String(error);

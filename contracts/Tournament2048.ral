@@ -26,7 +26,12 @@ Contract Tournament2048(
   mut totalRuns: U256,
   mut totalSubmissions: U256,
   mut leaderboardTopScore: U256,
-  mut leaderboardTopPlayer: Address
+  mut leaderboardTopPlayer: Address,
+
+  // Migration safety controls
+  owner: Address,
+  migrationRecipient: Address,
+  mut migrationMode: Bool
 ) {
   // Per-run receipt storage (mapping is implemented as sub-contracts by Ralph)
   mapping[ByteVec, RunReceipt] runs
@@ -34,6 +39,8 @@ Contract Tournament2048(
   event RunStarted(runIdHash: ByteVec, player: Address, seedHash: ByteVec, startedAt: U256, roundIndex: U256, entryFee: U256, potAfter: U256, totalRuns: U256)
   event RunSubmitted(runIdHash: ByteVec, player: Address, score: U256, attestationHash: ByteVec, submittedAt: U256, roundIndex: U256, payout: U256, carry: U256)
   event InactivityReset(triggeredAt: U256, roundIndexBefore: U256, topScoreBefore: U256)
+  event MigrationModeSet(enabled: Bool, setAt: U256)
+  event MigrationWithdraw(recipient: Address, amount: U256, withdrawnAt: U256)
 
   const BPS_DENOMINATOR = 10000
   const LOCKED_BASE_ENTRY = 1000000000000000000
@@ -51,6 +58,9 @@ Contract Tournament2048(
     InvalidEconomyConfig = 4
     InvalidLockedParams = 5
     RunAlreadyStarted = 6
+    Unauthorized = 7
+    MigrationDisabled = 8
+    InvalidWithdrawAmount = 9
   }
 
   fn nextEntryFee(currentFee: U256) -> U256 {
@@ -159,6 +169,25 @@ Contract Tournament2048(
     }
 
     emit RunSubmitted(runIdHash, player, score, attestationHash, now, roundIndex, payout, pot)
+  }
+
+  @using(updateFields = true, checkExternalCaller = false)
+  pub fn setMigrationMode(enabled: Bool) -> () {
+    assert!(callerAddress!() == owner, ErrorCodes.Unauthorized)
+    migrationMode = enabled
+    emit MigrationModeSet(enabled, blockTimeStamp!())
+  }
+
+  @using(assetsInContract = true, updateFields = true, checkExternalCaller = false)
+  pub fn migrateWithdraw(amount: U256) -> () {
+    assert!(callerAddress!() == owner, ErrorCodes.Unauthorized)
+    assert!(migrationMode, ErrorCodes.MigrationDisabled)
+    assert!(amount > 0 && amount <= pot, ErrorCodes.InvalidWithdrawAmount)
+
+    transferTokenFromSelf!(migrationRecipient, ALPH, amount)
+    pot = pot - amount
+
+    emit MigrationWithdraw(migrationRecipient, amount, blockTimeStamp!())
   }
 
   pub fn getEconomyState() -> (U256, U256, U256, U256, U256, U256, U256, Address, U256) {

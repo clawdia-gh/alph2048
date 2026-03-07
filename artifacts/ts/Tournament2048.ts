@@ -55,6 +55,9 @@ export namespace Tournament2048Types {
     totalSubmissions: bigint;
     leaderboardTopScore: bigint;
     leaderboardTopPlayer: Address;
+    owner: Address;
+    migrationRecipient: Address;
+    migrationMode: boolean;
   };
 
   export type State = ContractState<Fields>;
@@ -84,6 +87,15 @@ export namespace Tournament2048Types {
     roundIndexBefore: bigint;
     topScoreBefore: bigint;
   }>;
+  export type MigrationModeSetEvent = ContractEvent<{
+    enabled: boolean;
+    setAt: bigint;
+  }>;
+  export type MigrationWithdrawEvent = ContractEvent<{
+    recipient: Address;
+    amount: bigint;
+    withdrawnAt: bigint;
+  }>;
 
   export interface CallMethodTable {
     nextEntryFee: {
@@ -108,6 +120,14 @@ export namespace Tournament2048Types {
         score: bigint;
         attestationHash: HexString;
       }>;
+      result: CallContractResult<null>;
+    };
+    setMigrationMode: {
+      params: CallContractParams<{ enabled: boolean }>;
+      result: CallContractResult<null>;
+    };
+    migrateWithdraw: {
+      params: CallContractParams<{ amount: bigint }>;
       result: CallContractResult<null>;
     };
     getEconomyState: {
@@ -174,6 +194,14 @@ export namespace Tournament2048Types {
       }>;
       result: SignExecuteScriptTxResult;
     };
+    setMigrationMode: {
+      params: SignExecuteContractMethodParams<{ enabled: boolean }>;
+      result: SignExecuteScriptTxResult;
+    };
+    migrateWithdraw: {
+      params: SignExecuteContractMethodParams<{ amount: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
     getEconomyState: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
@@ -203,7 +231,13 @@ class Factory extends ContractFactory<
     );
   }
 
-  eventIndex = { RunStarted: 0, RunSubmitted: 1, InactivityReset: 2 };
+  eventIndex = {
+    RunStarted: 0,
+    RunSubmitted: 1,
+    InactivityReset: 2,
+    MigrationModeSet: 3,
+    MigrationWithdraw: 4,
+  };
   consts = {
     BPS_DENOMINATOR: BigInt("10000"),
     LOCKED_BASE_ENTRY: BigInt("1000000000000000000"),
@@ -220,6 +254,9 @@ class Factory extends ContractFactory<
       InvalidEconomyConfig: BigInt("4"),
       InvalidLockedParams: BigInt("5"),
       RunAlreadyStarted: BigInt("6"),
+      Unauthorized: BigInt("7"),
+      MigrationDisabled: BigInt("8"),
+      InvalidWithdrawAmount: BigInt("9"),
     },
   };
 
@@ -268,6 +305,29 @@ class Factory extends ContractFactory<
       >
     ): Promise<TestContractResult<null, Tournament2048Types.Maps>> => {
       return testMethod(this, "submitScore", params, getContractByCodeHash);
+    },
+    setMigrationMode: async (
+      params: TestContractParams<
+        Tournament2048Types.Fields,
+        { enabled: boolean },
+        Tournament2048Types.Maps
+      >
+    ): Promise<TestContractResult<null, Tournament2048Types.Maps>> => {
+      return testMethod(
+        this,
+        "setMigrationMode",
+        params,
+        getContractByCodeHash
+      );
+    },
+    migrateWithdraw: async (
+      params: TestContractParams<
+        Tournament2048Types.Fields,
+        { amount: bigint },
+        Tournament2048Types.Maps
+      >
+    ): Promise<TestContractResult<null, Tournament2048Types.Maps>> => {
+      return testMethod(this, "migrateWithdraw", params, getContractByCodeHash);
     },
     getEconomyState: async (
       params: Omit<
@@ -326,8 +386,8 @@ class Factory extends ContractFactory<
 export const Tournament2048 = new Factory(
   Contract.fromJson(
     Tournament2048ContractJson,
-    "=12+3b4=1+7=3-1=1-2=1-1=2-2+19=158-2+70=296+7a7e0214696e73657274206174206d617020706174683a2000=1080",
-    "69c24a5be61aae6a3a2d4f7fa876590f95e2b979a8ff0eafb33333c35873bacb",
+    "=12-6+3b=3+2=1+28d=2-2+c8=2+e=1-1=2-1=1+f=158-2+70=296+7a7e0214696e73657274206174206d617020706174683a2000=1252",
+    "d68e048d1947cf878959ba0a344eb6a0f46026d08eef012a71b3b7581664b954",
     types.AllStructs
   )
 );
@@ -394,11 +454,39 @@ export class Tournament2048Instance extends ContractInstance {
     );
   }
 
+  subscribeMigrationModeSetEvent(
+    options: EventSubscribeOptions<Tournament2048Types.MigrationModeSetEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      Tournament2048.contract,
+      this,
+      options,
+      "MigrationModeSet",
+      fromCount
+    );
+  }
+
+  subscribeMigrationWithdrawEvent(
+    options: EventSubscribeOptions<Tournament2048Types.MigrationWithdrawEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      Tournament2048.contract,
+      this,
+      options,
+      "MigrationWithdraw",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
     options: EventSubscribeOptions<
       | Tournament2048Types.RunStartedEvent
       | Tournament2048Types.RunSubmittedEvent
       | Tournament2048Types.InactivityResetEvent
+      | Tournament2048Types.MigrationModeSetEvent
+      | Tournament2048Types.MigrationWithdrawEvent
     >,
     fromCount?: number
   ): EventSubscription {
@@ -457,6 +545,28 @@ export class Tournament2048Instance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    setMigrationMode: async (
+      params: Tournament2048Types.CallMethodParams<"setMigrationMode">
+    ): Promise<Tournament2048Types.CallMethodResult<"setMigrationMode">> => {
+      return callMethod(
+        Tournament2048,
+        this,
+        "setMigrationMode",
+        params,
+        getContractByCodeHash
+      );
+    },
+    migrateWithdraw: async (
+      params: Tournament2048Types.CallMethodParams<"migrateWithdraw">
+    ): Promise<Tournament2048Types.CallMethodResult<"migrateWithdraw">> => {
+      return callMethod(
+        Tournament2048,
+        this,
+        "migrateWithdraw",
+        params,
+        getContractByCodeHash
+      );
+    },
     getEconomyState: async (
       params?: Tournament2048Types.CallMethodParams<"getEconomyState">
     ): Promise<Tournament2048Types.CallMethodResult<"getEconomyState">> => {
@@ -508,6 +618,25 @@ export class Tournament2048Instance extends ContractInstance {
       params: Tournament2048Types.SignExecuteMethodParams<"submitScore">
     ): Promise<Tournament2048Types.SignExecuteMethodResult<"submitScore">> => {
       return signExecuteMethod(Tournament2048, this, "submitScore", params);
+    },
+    setMigrationMode: async (
+      params: Tournament2048Types.SignExecuteMethodParams<"setMigrationMode">
+    ): Promise<
+      Tournament2048Types.SignExecuteMethodResult<"setMigrationMode">
+    > => {
+      return signExecuteMethod(
+        Tournament2048,
+        this,
+        "setMigrationMode",
+        params
+      );
+    },
+    migrateWithdraw: async (
+      params: Tournament2048Types.SignExecuteMethodParams<"migrateWithdraw">
+    ): Promise<
+      Tournament2048Types.SignExecuteMethodResult<"migrateWithdraw">
+    > => {
+      return signExecuteMethod(Tournament2048, this, "migrateWithdraw", params);
     },
     getEconomyState: async (
       params: Tournament2048Types.SignExecuteMethodParams<"getEconomyState">

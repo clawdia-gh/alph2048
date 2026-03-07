@@ -1,10 +1,10 @@
 {
   "network": "testnet",
-  "deployedAt": "2026-03-06T19:02:34.407Z",
-  "contractId": "da0044d578586679a228711f871d0e2042738b6bbb1a8afc99330e1fb48a2a00",
-  "address": "29MwEDJEjMuMwsA49tu6N31qySgBDqQFWwwkkeRcHwiib",
+  "deployedAt": "2026-03-06T21:02:41.230Z",
+  "contractId": "4b6275917c52265e703d7aa1effc3f3cfa557b79fbcb63eb211f5383881f7d00",
+  "address": "ymDmVSGQdu46vaFEQ44XCQJP8PF8zQbgVomDrJeatNrB",
   "groupIndex": 0,
-  "deployTxId": "680ba8bf158e04d72175070a4fe34b75f8272ec104e6985e14233ff228033e63",
+  "deployTxId": "b5d7705a8a7472bb6902a9302d36d513ee092930aa8290cb25340d7f709f0e78",
   "deployerAddress": "1DiUGqbv7TB8h8EoE7AqyckCpA3e2A3ds86LbZJp68kuq",
-  "codeHash": "67ac08ef67c4ff56e3ee16f94219c5e4959a905b982053a2c1d63e8d3813e48c"
+  "codeHash": "4a8652f439ef02d54d3cfd260a235fafaea4466892dc42ff25e0c63124663848"
 }

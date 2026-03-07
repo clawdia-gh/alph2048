@@ -265,6 +265,22 @@ export async function startRunTx({ contractId, runIdHash, seedHash, entryFeeAtto
   return { txId: tx.txId, wallet: connected.account.address }
 }
 
+export async function getRunState(contractId: string, runIdHash: string) {
+  ensureProvider()
+  const contract = Tournament2048.at(addressFromContractId(contractId))
+  const rs = await contract.view.getRunState({ args: { runIdHash: toByteVec(runIdHash) } })
+  const returns = rs?.returns || []
+  return {
+    found: returns[0] === true,
+    player: returns[1] || null,
+    seedHash: returns[2] || null,
+    startedAt: returns[3] || 0n,
+    submitted: returns[4] === true,
+    submittedScore: returns[5] || 0n,
+    attestationHash: returns[6] || null
+  }
+}
+
 export async function submitScoreTx({ contractId, runIdHash, score, attestationHash }: { contractId: string, runIdHash: string, score: number, attestationHash: string }) {
   ensureProvider()
   const connected = await connectWalletAuto()
