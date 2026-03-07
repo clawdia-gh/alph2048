@@ -31,15 +31,16 @@
       <details class="panel rules" aria-label="Game rules">
         <summary>How to play</summary>
         <ul>
-          <li><strong>Connect wallet</strong> (Extension, Desktop, or WalletConnect QR), then click <strong>Start Ranked Run</strong>.</li>
-          <li>Starting a run submits the current <strong>entry fee</strong> on-chain and locks this run to your wallet.</li>
-          <li>You get <strong>5:00</strong> per run. The timer starts only after start-run signing/tx succeeds.</li>
-          <li>Play normally (keyboard arrows, swipe, or tap controls). Your moves and timings are verified on submit.</li>
-          <li>When the board is stuck (or you tap <strong>Quit and Submit</strong>), use <strong>Verify + Submit</strong> to finalize.</li>
-          <li>You must use the <strong>same wallet</strong> for start and submit; switching wallets will fail verification.</li>
-          <li>If your score beats current #1, payout is <strong>50%</strong> of pot and the remaining <strong>50%</strong> carries forward.</li>
-          <li>When a new #1 is set, next entry fee is reduced by half, with a floor of <strong>1 ALPH</strong>.</li>
-          <li><strong>24h reset</strong> is based on the last time someone takes <strong>#1</strong>: if no new first place is set for 24h, fee/top-score cycle resets on next start.</li>
+          <li>Connect your wallet, then tap <strong>Start Ranked Run</strong>.</li>
+          <li>You pay the entry fee to start. (Final amount is confirmed in your wallet popup.)</li>
+          <li>You get <strong>5 minutes</strong> to play.</li>
+          <li>Move tiles with arrow keys, swipe, or tap buttons.</li>
+          <li>When you're done, tap <strong>Verify + Submit</strong> (or <strong>Quit and Submit</strong>).</li>
+          <li>Use the <strong>same wallet</strong> for both start and submit.</li>
+          <li>If your score becomes #1, you win <strong>half the pot</strong>. The other half stays for the next winner.</li>
+          <li>After a new #1 win, the next entry fee gets cut in half (but never below <strong>1 ALPH</strong>).</li>
+          <li>If nobody gets a new #1 for 24h, the game resets on the next start.</li>
+          <li>Want 2048 strategy tips? <a href="https://www.wikihow.com/Beat-2048" target="_blank" rel="noopener noreferrer">Click here</a> (opens in a new tab).</li>
         </ul>
       </details>
 
@@ -70,11 +71,12 @@
       <p id="overlayReason" class="overlay-reason"></p>
 
       <section class="panel controls" aria-label="Game controls">
-        <div class="dpad">
-          <button class="move up" data-dir="up">↑</button>
-          <button class="move left" data-dir="left">←</button>
-          <button class="move down" data-dir="down">↓</button>
-          <button class="move right" data-dir="right">→</button>
+        <div class="dpad" role="group" aria-label="Directional controls">
+          <button class="move up" data-dir="up" aria-label="Move up">↑</button>
+          <button class="move left" data-dir="left" aria-label="Move left">←</button>
+          <button class="move down" data-dir="down" aria-label="Move down">↓</button>
+          <button class="move right" data-dir="right" aria-label="Move right">→</button>
+          <div class="dpad-center" aria-hidden="true"></div>
         </div>
         <p class="hint controls-hint">Use arrow keys, swipe on the board, or tap controls to play.</p>
         <button id="endRunNow" class="move end-run" disabled>Quit and Submit</button>
@@ -115,6 +117,7 @@
           <span id="rankChip" class="chip chip-neutral">Rank: n/a</span>
         </div>
         <div id="runStatus">Run: not started</div>
+        <button id="resetRunState" class="secondary" style="display:none; margin-top:8px;">Cancel this run and start fresh</button>
       </details>
     </main>
     <script type="module" src="./main.js"></script>
