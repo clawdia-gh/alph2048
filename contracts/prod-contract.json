@@ -1,0 +1,12 @@
+{
+  "deployedAt": "2026-03-07T00:39:26.196Z",
+  "network": "testnet",
+  "nodeUrl": "https://node.testnet.alephium.org",
+  "contractId": "49c0e72d07e2fb164a118f0e4f072647404f512b4ea5ff1e2c0a578382eed300",
+  "contractAddress": "yerUjnWKigcxLoZrSqn5SAgrREncWqVqJJkDBc9FDAQ7",
+  "groupIndex": 0,
+  "deployTxId": "8c31fa1871f483df953a93d6f437cb5e8954a53f367ff75483bff65d24f9bc35",
+  "deployerAddress": "16sEreQpMCsYWYhKqtTonpcnD2Q7p5gLT9Dm1GYg6Ngxu",
+  "owner": "16sEreQpMCsYWYhKqtTonpcnD2Q7p5gLT9Dm1GYg6Ngxu",
+  "migrationRecipient": "1AfBFvSU92Sp1GTgFQKD4LQN91vXj22GijqVztpC56ozA"
+}

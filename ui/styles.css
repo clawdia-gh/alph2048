@@ -281,7 +281,7 @@ main {
 }
 
 .controls {
-  --dpad-size-x: clamp(64px, 18vw, 76px);
+  --dpad-size-x: clamp(77px, 21.6vw, 91px);
   --dpad-size-y: clamp(40px, 11.3vw, 48px);
   --dpad-gap-x: clamp(10px, 2.8vw, 14px);
   --dpad-gap-y: clamp(5px, 1.7vw, 8px);
@@ -360,7 +360,7 @@ main {
 }
 @media (min-width: 900px) {
   .controls {
-    --dpad-size-x: 62px;
+    --dpad-size-x: 74px;
     --dpad-size-y: 39px;
     --dpad-gap-x: 10px;
     --dpad-gap-y: 6px;
